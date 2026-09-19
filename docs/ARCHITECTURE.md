@@ -14,7 +14,7 @@ A country is not a single persona. `initializeWorld` generates weighted syntheti
 
 1. Initialize every country and cohort from the seed.
 2. Construct international links.
-3. For each week, optionally query Jev for representative cohorts in the highest-pressure countries.
+3. For each week, optionally query Jev through OpenRouter for representative cohorts in the highest-pressure countries.
 4. Apply the bounded decisions to the state transition.
 5. Compute event exposure, inbound international pressure, adaptation and prior-action mitigation.
 6. Aggregate cohort pressure by represented population.
@@ -23,15 +23,15 @@ A country is not a single persona. `initializeWorld` generates weighted syntheti
 
 The provider-aware loop lives in `provider-runner.ts`; the pure deterministic engine remains independently testable.
 
-## Jev boundary
+## OpenRouter decision boundary
 
-Jev receives a textual state plus a fixed option set for the relevant actor type. It does not calculate economic arithmetic. Returned choices are mapped to bounded action-effect coefficients. Provider errors fall back to deterministic rules and are surfaced in `warnings` rather than corrupting the run.
+OpenRouter's `~typesafe/jev-latest` decision model receives a textual state plus a fixed option set for the relevant actor type. It does not calculate economic arithmetic. Returned choices are mapped to bounded action-effect coefficients. Provider errors fall back to deterministic rules and are surfaced in `warnings` rather than corrupting the run.
 
-`JEV_MAX_COUNTRIES` limits provider fan-out. Within each selected country, the runner queries a few high-weight representative cohorts per actor type. This gives demographic variation without turning every synthetic agent into a network request.
+`DECISION_MAX_COUNTRIES` limits provider fan-out. Within each selected country, the runner queries a few high-weight representative cohorts per actor type. This gives demographic variation without turning every synthetic agent into a network request.
 
 ## OpenRouter boundary
 
-OpenRouter is post-processing only. It receives scenario metadata, methodology and final computed state. A narration failure does not fail the simulation. The system prompt explicitly prohibits presenting simulation frequencies as verified probabilities.
+The same OpenRouter key also powers optional post-processing narration. It receives scenario metadata, methodology and final computed state. A narration failure does not fail the simulation. The system prompt explicitly prohibits presenting simulation frequencies as verified probabilities.
 
 ## Persistence
 

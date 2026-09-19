@@ -2,7 +2,7 @@ import {expect,test} from "@playwright/test";
 
 test("runs a blank scenario without API keys",async({page})=>{
   await page.goto("/");
-  await expect(page.getByRole("dialog",{name:"Connect decision providers"})).toBeVisible();
+  await expect(page.getByRole("dialog",{name:"Connect OpenRouter"})).toBeVisible();
   await page.getByRole("button",{name:"Use deterministic mode"}).click();
 
   const event=page.getByLabel("World event");
@@ -48,9 +48,8 @@ test("validates provider keys before entering the lab",async({page})=>{
   let validated=false;
   await page.route("**/api/providers/validate",route=>{validated=true;return route.fulfill({status:200,contentType:"application/json",body:"{\"ok\":true}"})});
   await page.goto("/");
-  await page.getByLabel("TypeSafe / Jev API key").fill("jev-test-key");
   await page.getByLabel("OpenRouter API key").fill("openrouter-test-key");
-  await page.getByRole("button",{name:"Connect providers"}).click();
+  await page.getByRole("button",{name:"Connect OpenRouter"}).click();
   await expect.poll(()=>validated).toBe(true);
-  await expect(page.getByRole("dialog",{name:"Connect decision providers"})).toHaveCount(0);
+  await expect(page.getByRole("dialog",{name:"Connect OpenRouter"})).toHaveCount(0);
 });

@@ -12,8 +12,8 @@ WorldSim is a Vercel-first, interactive global scenario laboratory. Introduce an
 - Population weighting: approximately 100 synthetic agents per 1B residents, capped at 100 and with a minimum of 3 for small countries. Agents are compressed into inspectable cohorts without losing their represented population weight.
 - Energy, trade, technology, health, climate and custom event families.
 - Explicit exposure, resilience, adaptation and cross-border propagation mechanics.
-- Optional Jev decisions for representative high-impact cohorts **during the simulation loop**. Jev decisions affect subsequent state through bounded action effects; unqueried cohorts use deterministic fallback rules.
-- Optional OpenRouter narrative that explains already-computed outputs without owning numerical state.
+- Optional OpenRouter-powered Jev decisions for representative high-impact cohorts **during the simulation loop**. Decisions affect subsequent state through bounded action effects; unqueried cohorts use deterministic fallback rules.
+- Optional OpenRouter narrative that explains already-computed outputs without owning numerical state. One OpenRouter key powers both features.
 - No-shock baseline comparison.
 - Persisted simulations and replay with PostgreSQL/Prisma.
 - Timeline branching from an actual historical frame; pre-branch state is preserved.
@@ -31,19 +31,16 @@ npm run db:push
 npm run dev
 ```
 
-Open `http://localhost:3000`. The core simulator works without a database or AI key. Persistence/branching require PostgreSQL. Jev and OpenRouter activate only when their keys are configured.
+Open `http://localhost:3000`. The core simulator works without a database or AI key. Persistence/branching require PostgreSQL. Provider features activate when one OpenRouter key is configured.
 
 ## Environment variables
 
 | Variable | Required | Purpose |
 | --- | --- | --- |
 | `DATABASE_URL` | for persistence | PostgreSQL connection used by Prisma |
-| `JEV_API_KEY` | no | Enables Jev bounded cohort decisions |
-| `JEV_API_URL` | no | Jev endpoint base URL |
-| `JEV_MODEL` | no | Jev model identifier |
-| `JEV_MAX_COUNTRIES` | no | Cost/latency guardrail for countries evaluated by Jev per week |
-| `OPENROUTER_API_KEY` | no | Enables narrative analysis |
-| `OPENROUTER_MODEL` | no | OpenRouter model slug |
+| `OPENROUTER_API_KEY` | no | Enables OpenRouter decisions and narrative analysis |
+| `DECISION_MAX_COUNTRIES` | no | Cost/latency guardrail for countries evaluated per week |
+| `OPENROUTER_MODEL` | no | OpenRouter narration model slug |
 | `NEXT_PUBLIC_APP_URL` | recommended | Application URL used in OpenRouter attribution headers |
 
 Never commit `.env` or provider keys. All provider calls are made from server routes.
@@ -79,7 +76,7 @@ src/app/                     Next.js App Router pages + API routes
 src/components/              Simulation workspace and globe
 src/data/                    bundled global country snapshot
 src/lib/simulation/          domain types, mechanics, provider-aware runner
-src/lib/providers/           Jev + OpenRouter boundaries
+src/lib/providers/           OpenRouter boundary
 src/lib/db/                  Prisma singleton
 prisma/                      persistence schema
 tests/                       simulation invariants

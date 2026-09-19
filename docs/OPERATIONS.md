@@ -2,13 +2,13 @@
 
 ## Cost controls
 
-Jev fan-out is controlled by `JEV_MAX_COUNTRIES`. The runner queries only representative cohorts in the highest-pressure countries. Start at 6–12, inspect latency/cost, then raise deliberately. Keep deterministic mode available for development and demos.
+Decision fan-out is controlled by `DECISION_MAX_COUNTRIES`. The runner queries only representative cohorts in the highest-pressure countries through OpenRouter. Start at 6–12, inspect latency/cost, then raise deliberately. Keep deterministic mode available for development and demos.
 
-OpenRouter runs once after a simulation and never owns numerical state.
+OpenRouter narration runs once after a simulation and never owns numerical state.
 
 ## Failure behavior
 
-- Jev timeout/error: that cohort falls back to deterministic rules; warning recorded.
+- OpenRouter decision timeout/error: that cohort falls back to deterministic rules; warning recorded.
 - OpenRouter error: simulation succeeds; warning recorded; narration omitted.
 - Database absent: simulations still run in-memory; history/branching endpoints requiring persistence return a clear error.
 - Invalid request: Zod rejects it with HTTP 400.

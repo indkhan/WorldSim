@@ -1,21 +1,21 @@
 import {afterEach,describe,expect,it,vi} from "vitest";
-import {decideWithJev} from "@/lib/providers/jev";
+import {decideWithOpenRouter} from "@/lib/providers/openrouter";
 
 afterEach(()=>vi.unstubAllGlobals());
 
-describe("Jev provider",()=>{
-  it("uses the System One choice contract",async()=>{
-    const fetchMock=vi.fn().mockResolvedValue(new Response(JSON.stringify({answers:{action:{choice:"cut_discretionary_spending",confidence:.82}}}),{status:200,headers:{"content-type":"application/json"}}));
+describe("OpenRouter decision provider",()=>{
+  it("uses the OpenRouter Decisions contract",async()=>{
+    const fetchMock=vi.fn().mockResolvedValue(new Response(JSON.stringify({answers:{action:{type:"choice",choice:"cut_discretionary_spending",confidence:.82}}}),{status:200,headers:{"content-type":"application/json"}}));
     vi.stubGlobal("fetch",fetchMock);
 
-    const decision=await decideWithJev({actor:"household",situation:"Energy prices rose."},{apiKey:"test-key"});
+    const decision=await decideWithOpenRouter({actor:"household",situation:"Energy prices rose."},"test-key");
 
     expect(fetchMock).toHaveBeenCalledOnce();
     const[url,init]=fetchMock.mock.calls[0] as [string,RequestInit];
-    expect(url).toBe("https://api.typesafe.ai/v1/systemone");
-    expect(init.headers).toMatchObject({Authorization:"Bearer test-key","content-type":"application/json"});
+    expect(url).toBe("https://openrouter.ai/api/alpha/decisions");
+    expect(init.headers).toMatchObject({Authorization:"Bearer test-key","Content-Type":"application/json"});
     expect(JSON.parse(String(init.body))).toEqual({
-      model:"jev-latest",
+      model:"~typesafe/jev-latest",
       state:"Energy prices rose.",
       questions:{action:{
         type:"choice",
@@ -33,7 +33,7 @@ describe("Jev provider",()=>{
   it("does not retry rejected credentials",async()=>{
     const fetchMock=vi.fn().mockResolvedValue(new Response("unauthorized",{status:401}));
     vi.stubGlobal("fetch",fetchMock);
-    await expect(decideWithJev({actor:"government",situation:"Test"},{apiKey:"bad-key"})).rejects.toThrow("Jev request failed (401)");
+    await expect(decideWithOpenRouter({actor:"government",situation:"Test"},"bad-key")).rejects.toThrow("OpenRouter decision request failed (401)");
     expect(fetchMock).toHaveBeenCalledOnce();
   });
 });

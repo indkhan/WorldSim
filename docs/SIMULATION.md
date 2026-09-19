@@ -35,9 +35,9 @@ All continuous state is clamped to `[0,1]`. Country pressure is the represented-
 
 ## Decisions
 
-Without Jev, deterministic thresholds choose from bounded actions. With Jev configured, representative high-impact cohorts receive a Jev decision each week. That choice is converted to a bounded mitigation/adaptation coefficient and therefore affects the next state transition. Every cohort records whether its decision came from `rules` or `jev`.
+Without OpenRouter, deterministic thresholds choose from bounded actions. When configured, representative high-impact cohorts receive a decision from OpenRouter's `~typesafe/jev-latest` model each week. That choice is converted to a bounded mitigation/adaptation coefficient and therefore affects the next state transition. Every cohort records whether its decision came from `rules` or `openrouter`.
 
-Jev confidence describes confidence over the supplied decision options. It is **not** the probability that a real population, company or government will take that action.
+Decision confidence describes confidence over the supplied options. It is **not** the probability that a real population, company or government will take that action.
 
 ## International propagation
 

@@ -5,7 +5,7 @@ The included Vitest suite checks the invariants most likely to silently invalida
 Before a public release, add:
 
 - route tests for Zod validation and provider failures;
-- mocked Jev tests proving decisions alter the following week's state;
+- mocked OpenRouter decision tests proving decisions alter the following week's state;
 - mocked OpenRouter tests proving narration failure is non-fatal;
 - Playwright tests for scenario creation, country drill-down, timeline playback, baseline comparison and branching;
 - accessibility checks for keyboard navigation and contrast;

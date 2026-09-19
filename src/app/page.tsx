@@ -1,0 +1,1 @@
+import SimulationLab from"@/components/SimulationLab";import{runSimulation}from"@/lib/simulation/engine";export default function Home(){return <SimulationLab initial={runSimulation({title:"Global energy shock",description:"Global oil supply falls by 20% for three months.",family:"energy",severity:65,durationWeeks:12,seed:42})}/>}

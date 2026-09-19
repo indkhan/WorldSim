@@ -26,6 +26,15 @@ test("keeps result-only controls unavailable before a scenario runs",async({page
   await expect(page.getByText("Active links")).toHaveCount(0);
 });
 
+test("provides a heading and skip link for keyboard navigation",async({page})=>{
+  await page.goto("/");
+
+  await expect(page.getByRole("heading",{name:"WorldSim"})).toBeVisible();
+  const skip=page.getByRole("link",{name:"Skip to simulator"});
+  await expect(skip).toBeVisible();
+  await expect(page.locator("#simulation-lab")).toHaveAttribute("tabindex","-1");
+});
+
 test("explains an unreachable simulation server",async({page})=>{
   await page.route("**/api/simulations",route=>route.abort());
   await page.goto("/");

@@ -1,10 +1,11 @@
 import {describe,expect,it} from "vitest";
-import {actionEffect,agentCount,continueFromFrame,runSimulation} from "@/lib/simulation/engine";
+import {actionEffect,agentCount,continueFromFrame,emptySimulation,runSimulation} from "@/lib/simulation/engine";
 import type {ScenarioInput} from "@/lib/simulation/types";
 
 const scenario:ScenarioInput={title:"Energy shock",description:"A severe global energy supply disruption changes prices and availability.",family:"energy",severity:70,durationWeeks:8,seed:42};
 
 describe("population representation",()=>{
+  it("starts with one neutral frame and no fake scenario",()=>{const result=emptySimulation();expect(result.scenario.description).toBe("");expect(result.frames).toHaveLength(1);expect(result.frames[0].globalPressure).toBe(0)});
   it("uses 100 agents per billion at the cap",()=>expect(agentCount(1_000_000_000)).toBe(100));
   it("keeps a minimum representation for small countries",()=>expect(agentCount(100_000)).toBe(3));
   it("covers the world",()=>expect(runSimulation(scenario).frames[0].countries.length).toBeGreaterThan(190));

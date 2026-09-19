@@ -1,0 +1,7 @@
+"use client";
+import{useState}from"react";
+import{KeyRound}from"lucide-react";
+
+export type ProviderKeys={jev?:string;openrouter?:string};
+
+export default function ProviderGate({onConnect}:{onConnect:(keys:ProviderKeys)=>void}){const[jev,setJev]=useState(""),[openrouter,setOpenrouter]=useState("");return <div className="gate-backdrop"><section className="provider-gate" role="dialog" aria-modal="true" aria-labelledby="provider-title"><div className="gate-icon"><KeyRound/></div><p className="eyebrow">PRIVATE SESSION</p><h1 id="provider-title">Connect decision providers</h1><p>Keys stay in this tab, travel only to WorldSim&apos;s server, and are forgotten when you refresh.</p><label htmlFor="jev-key">TypeSafe / Jev API key</label><input id="jev-key" type="password" autoComplete="off" value={jev} onChange={e=>setJev(e.target.value)} placeholder="ts_…"/><a href="https://console.typesafe.ai" target="_blank" rel="noreferrer">Get a Jev key ↗</a><label htmlFor="openrouter-key">OpenRouter API key</label><input id="openrouter-key" type="password" autoComplete="off" value={openrouter} onChange={e=>setOpenrouter(e.target.value)} placeholder="sk-or-…"/><a href="https://openrouter.ai/settings/keys" target="_blank" rel="noreferrer">Get an OpenRouter key ↗</a><button className="primary" disabled={!jev.trim()||!openrouter.trim()} onClick={()=>onConnect({jev:jev.trim(),openrouter:openrouter.trim()})}>Connect providers</button><button className="text-button" onClick={()=>onConnect({})}>Use deterministic mode</button></section></div>}

@@ -30,4 +30,10 @@ describe("Jev provider",()=>{
     });
     expect(decision).toMatchObject({action:"cut discretionary spending",confidence:.82});
   });
+  it("does not retry rejected credentials",async()=>{
+    const fetchMock=vi.fn().mockResolvedValue(new Response("unauthorized",{status:401}));
+    vi.stubGlobal("fetch",fetchMock);
+    await expect(decideWithJev({actor:"government",situation:"Test"},{apiKey:"bad-key"})).rejects.toThrow("Jev request failed (401)");
+    expect(fetchMock).toHaveBeenCalledOnce();
+  });
 });

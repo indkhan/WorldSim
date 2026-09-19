@@ -16,6 +16,16 @@ test("runs a blank scenario without API keys",async({page})=>{
   await expect(page.locator(".error-banner")).toHaveCount(0);
 });
 
+test("keeps result-only controls unavailable before a scenario runs",async({page})=>{
+  await page.goto("/");
+  await page.getByRole("button",{name:"Use deterministic mode"}).click();
+
+  await expect(page.getByRole("button",{name:"Compare to baseline"})).toBeDisabled();
+  await expect(page.getByRole("button",{name:"Branch from week 0"})).toBeDisabled();
+  await expect(page.getByLabel("Simulation week")).toBeDisabled();
+  await expect(page.getByText("Active links")).toHaveCount(0);
+});
+
 test("explains an unreachable simulation server",async({page})=>{
   await page.route("**/api/simulations",route=>route.abort());
   await page.goto("/");

@@ -24,3 +24,14 @@ test("explains an unreachable simulation server",async({page})=>{
   await page.getByRole("button",{name:"Run world"}).click();
   await expect(page.locator(".error-banner")).toContainText("WorldSim could not reach the simulation server");
 });
+
+test("validates provider keys before entering the lab",async({page})=>{
+  let validated=false;
+  await page.route("**/api/providers/validate",route=>{validated=true;return route.fulfill({status:200,contentType:"application/json",body:"{\"ok\":true}"})});
+  await page.goto("/");
+  await page.getByLabel("TypeSafe / Jev API key").fill("jev-test-key");
+  await page.getByLabel("OpenRouter API key").fill("openrouter-test-key");
+  await page.getByRole("button",{name:"Connect providers"}).click();
+  await expect.poll(()=>validated).toBe(true);
+  await expect(page.getByRole("dialog",{name:"Connect decision providers"})).toHaveCount(0);
+});

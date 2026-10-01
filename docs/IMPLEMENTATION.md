@@ -21,9 +21,9 @@ Starting point: docs/REVIEW.md at 6ede638. Findings were checked against current
 | Clean npm ci | Passed; postinstall Prisma generation, no PostgreSQL required |
 | npm run typecheck | Passed |
 | npm run lint | Passed, zero warnings |
-| npm test | 44 tests passed across nine files |
+| npm test | 45 tests passed across nine files |
 | npm run build | Passed, Next 15 production build |
-| npm run test:e2e | 10 tests passed on isolated WorldSim port 3117, reuse disabled |
+| npm run test:e2e | 11 tests passed on isolated WorldSim port 3117, reuse disabled |
 | npm audit | Zero advisories after compatible fixes |
 | npm audit --omit=dev | Zero advisories |
 | Prisma config compatibility | prisma validate with disposable local config passed; no connection attempted |

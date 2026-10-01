@@ -69,3 +69,19 @@ it("caps total provider requests across all weeks", async () => {
   expect(r.frames).toHaveLength(5);
   expect(r.warnings?.join(" ")).toContain("budget");
 });
+it("stops the entire run at its provider deadline", async () => {
+  vi.useFakeTimers();
+  vi.stubEnv("PROVIDER_MAX_SECONDS", "1");
+  const fetch = vi.fn(() => new Promise(() => {}));
+  vi.stubGlobal("fetch", fetch);
+  try {
+    const pending = runProviderSimulation(s, "key");
+    await vi.advanceTimersByTimeAsync(1000);
+    const result = await pending;
+    expect(result.frames).toHaveLength(5);
+    expect(fetch).toHaveBeenCalledOnce();
+    expect(result.warnings?.join(" ")).toContain("budget");
+  } finally {
+    vi.useRealTimers();
+  }
+});

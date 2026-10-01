@@ -47,7 +47,7 @@ These links are proxies, not a measured global input-output table. A future data
 
 ## Baselines and branches
 
-A baseline takes the completed scenario settings, changing only severity to zero. Edited controls do not affect it. New runs, branches and replay clear the previous baseline; incompatible settings/endpoints are rejected. A branch baseline starts at the same parent checkpoint as the branch. Independently queried provider choices can differ; deltas are model comparisons, not clean causal attribution. A branch preserves all parent frames through the selected week and then evolves from that exact state under changed branch assumptions. This is preferable to restarting from week zero and merely relabeling the run.
+A baseline takes the completed scenario settings, changing only severity to zero. Edited controls do not affect it. New runs, branches and replay clear the previous baseline; incompatible settings/endpoints are rejected. A branch baseline starts at the same parent checkpoint as the branch. Independently queried provider choices can differ; deltas are model comparisons, not clean causal attribution. A branch preserves all parent frames through the selected week and then evolves from that exact state under changed structured numerical inputs. This is preferable to restarting from week zero and merely relabeling the run.
 
 ## Interpretation
 

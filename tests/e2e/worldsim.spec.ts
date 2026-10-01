@@ -200,3 +200,63 @@ test("loads saved history, metadata and parent ancestry", async ({
     page.getByRole("button", { name: "Branch from week 0" }),
   ).toBeEnabled();
 });
+test("clears a previous baseline when branching a saved run", async ({
+  page,
+  request,
+}) => {
+  const response = await request.post("/api/simulations", {
+    headers: { "x-provider-mode": "deterministic" },
+    data: {
+      title: "Saved run",
+      description: "Synthetic energy disruption.",
+      family: "energy",
+      severity: 70,
+      durationWeeks: 4,
+      seed: 42,
+    },
+  });
+  const packed = await response.json();
+  packed.id = "parent";
+  packed.createdAt = "2026-01-01T00:00:00.000Z";
+  packed.saveStatus = "saved";
+  await page.route("**/api/simulations", (route) =>
+    route.request().method() === "GET"
+      ? route.fulfill({
+          json: [
+            { id: "parent", title: "Saved run", createdAt: packed.createdAt },
+          ],
+        })
+      : route.continue(),
+  );
+  await page.route("**/api/simulations/parent", (route) =>
+    route.fulfill({ json: packed }),
+  );
+  await page.route("**/api/simulations/parent/branch", (route) =>
+    route.fulfill({
+      json: {
+        ...packed,
+        id: "child",
+        scenario: {
+          ...packed.scenario,
+          parentSimulationId: "parent",
+          branchWeek: 0,
+          title: "Branch: Saved run",
+        },
+      },
+    }),
+  );
+  await page.goto("/");
+  await page.getByRole("button", { name: "Use deterministic mode" }).click();
+  await page.getByRole("button", { name: "Refresh saved history" }).click();
+  await expect(page.getByLabel("Saved runs")).toContainText("Saved run");
+  await page.getByLabel("Saved runs").selectOption("parent");
+  await expect(page.getByText("Saved run", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Compare to baseline" }).click();
+  await expect(page.getByText("GLOBAL PRESSURE DELTA")).toBeVisible();
+  await page.getByRole("button", { name: "Branch from week 0" }).click();
+  await expect(
+    page.getByText("Branch: Saved run", { exact: true }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Compare", exact: true }).click();
+  await expect(page.getByText("Create a baseline")).toBeVisible();
+});

@@ -420,7 +420,7 @@ export function continueFromFrame(
             "Branch continuation uses deterministic rules; historical provider decisions are preserved.",
           ]
         : [],
-    methodology: `Branched from parent simulation at week ${at}. State before the branch is preserved; subsequent state uses the branch scenario and assumptions. ${parent.methodology}`,
+    methodology: `Branched from parent simulation at week ${at}. State before the branch is preserved; subsequent state uses structured branch inputs and current engine mechanics. ${parent.methodology}`,
   };
 }
 export function compatibleResults(a: SimulationResult, b: SimulationResult) {

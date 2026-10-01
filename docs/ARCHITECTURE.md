@@ -35,7 +35,7 @@ The same OpenRouter key also powers optional post-processing narration. It recei
 
 ## Persistence
 
-`Simulation` stores input, output and model versions. `Checkpoint` is reserved for durable incremental execution. Branches record `parentSimulationId` in input and preserve parent frames through the branch week before applying changed assumptions.
+`Simulation` stores input, output and model versions. `Checkpoint` is reserved for durable incremental execution. Branches record `parentSimulationId` in input and preserve parent frames through the branch week before applying changed structured numerical inputs.
 
 ## Vercel execution
 

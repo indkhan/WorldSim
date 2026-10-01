@@ -1,3 +1,4 @@
+import {privateAccess} from "@/lib/access";
 import {NextResponse} from 'next/server';
 import {z} from 'zod';
 import {hasDatabase,prisma} from '@/lib/db/prisma';
@@ -8,6 +9,7 @@ import type {PackedResult} from '@/lib/simulation/transport';
 export const runtime='nodejs';export const maxDuration=300;
 const body=z.object({description:z.string().min(10).max(6000),severity:z.number().min(0).max(100),branchWeek:z.number().int().min(0),family:z.enum(['energy','trade','technology','health','climate','custom']).optional(),durationWeeks:z.number().int().min(1).max(104).optional(),providerPolicy:z.literal('deterministic'),baseline:z.boolean().optional()});
 export async function POST(req:Request,{params}:{params:Promise<{id:string}>}){
+  const denied=privateAccess(req);if(denied)return denied;
   if(!hasDatabase())return NextResponse.json({error:'Database required for persisted branches'},{status:503});
   let patch;try{patch=body.parse(await req.json())}catch{return NextResponse.json({error:'Invalid branch settings; choose deterministic continuation explicitly'},{status:400})}
   try{const {id}=await params,parent=await prisma.simulation.findUnique({where:{id}});if(!parent?.result)return NextResponse.json({error:'Parent not found'},{status:404});

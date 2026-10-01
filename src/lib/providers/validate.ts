@@ -1,1 +1,2 @@
-export async function validateProviderKeys(key:string){const response=await fetch("https://openrouter.ai/api/v1/key",{headers:{Authorization:`Bearer ${key}`}});if(!response.ok)throw new Error(`OpenRouter rejected this key (${response.status}).`)}
+import {providerJson} from './execution';
+export async function validateProviderKeys(key:string){await providerJson('https://openrouter.ai/api/v1/key',{headers:{Authorization:`Bearer ${key}`}})}

@@ -1,7 +1,7 @@
 export type EventFamily="energy"|"trade"|"technology"|"health"|"climate"|"custom";
 export type ActorKind="household"|"business"|"government";
 export type Income="low"|"middle"|"high";
-export type ScenarioInput={title:string;description:string;family:EventFamily;severity:number;durationWeeks:number;seed:number;targetRegions?:string[];assumptions?:string[];parentSimulationId?:string;branchWeek?:number};
+export type ScenarioInput={title:string;description:string;family:EventFamily;severity:number;durationWeeks:number;shockDurationWeeks?:number;adaptationWeeks?:number;seed:number;targetRegions?:string[];assumptions?:string[];parentSimulationId?:string;branchWeek?:number};
 export type CohortState={id:string;kind:ActorKind;income:Income;urban:boolean;sector:string;weight:number;share:number;resilience:number;exposure:number;pressure:number;action:string;confidence:number;rationale:string;decisionSource:"rules"|"openrouter";actionEffect:number};
 export type DecisionSummary={actor:ActorKind;action:string;share:number;rationale:string};
 export type CountryState={code:string;name:string;region:string;subregion:string;population:number;lat:number;lng:number;pressure:number;householdStrain:number;productionPressure:number;policyResponse:number;agents:number;cohorts:CohortState[];decisions:DecisionSummary[];imports:number;exports:number;energyExposure:number;adaptiveCapacity:number};

@@ -8,3 +8,5 @@
 .provider-status{display:inline-flex;align-items:center;gap:7px;margin-top:12px;padding:6px 9px;border:1px solid var(--line);border-radius:999px;color:var(--muted);font-size:9px;text-transform:uppercase;letter-spacing:.08em}.provider-status i{width:6px;height:6px;border-radius:50%;background:#ffd166}.provider-status.openrouter{color:var(--accent);border-color:#8fffd233}.provider-status.openrouter i{background:var(--accent)}
 .provider-warnings{margin-top:10px;color:#d9c47d;font-size:10px}.provider-warnings p{overflow-wrap:anywhere}
 .provider-gate .gate-error{margin:14px 0 0;color:#ff9a8e;font-size:11px}
+
+.provider-gate{color:#e9f5f1;max-height:90vh;overflow:auto}.provider-gate::backdrop{background:#020706e8;backdrop-filter:blur(18px)}

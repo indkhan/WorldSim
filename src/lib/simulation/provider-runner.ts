@@ -1,6 +1,41 @@
-import type{ScenarioInput,SimulationResult}from"./types";
-import{initializeWorld,makeFlows,makeFrame,stepWorld}from"./engine";
-import{openRouterOverrides}from"@/lib/providers/openrouter";
-
-import {createProviderBudget,type ProviderBudget} from "@/lib/providers/execution";
-export async function runProviderSimulation(s:ScenarioInput,openRouterApiKey?:string|null,budget?:ProviderBudget):Promise<SimulationResult>{budget??=openRouterApiKey?createProviderBudget():undefined;let states=initializeWorld(s),usedOpenRouter=false;const flows=makeFlows(states,s.family),frames=[makeFrame(0,states,flows)],warnings:string[]=[];for(let week=1;week<=s.durationWeeks;week++){const decisions=await openRouterOverrides(states,s,week,openRouterApiKey,budget);usedOpenRouter||=decisions.overrides.length>0;warnings.push(...decisions.warnings);states=stepWorld(states,s,week,flows,decisions.overrides);frames.push(makeFrame(week,states,flows))}return{scenario:s,frames,providerMode:usedOpenRouter?"openrouter":"deterministic",warnings:warnings.slice(0,50),methodology:"Population-weighted demographic and sector cohorts evolve each week. When OpenRouter is configured, bounded decisions for representative high-impact cohorts are made before the next state transition and their mitigation/adaptation effects feed subsequent weeks. Unqueried cohorts use deterministic bounded rules. International links propagate pressure. This is exploratory scenario analysis, not forecasting."}}
+import type { ScenarioInput, SimulationResult } from "./types";
+import { initializeWorld, makeFlows, makeFrame, stepWorld } from "./engine";
+import { openRouterOverrides } from "@/lib/providers/openrouter";
+import {
+  createProviderBudget,
+  type ProviderBudget,
+} from "@/lib/providers/execution";
+export async function runProviderSimulation(
+  s: ScenarioInput,
+  openRouterApiKey?: string | null,
+  budget?: ProviderBudget,
+): Promise<SimulationResult> {
+  budget ??= openRouterApiKey ? createProviderBudget() : undefined;
+  let states = initializeWorld(s),
+    usedOpenRouter = false;
+  const flows = makeFlows(states, s.family),
+    frames = [makeFrame(0, states, flows)],
+    warnings: string[] = [];
+  for (let week = 1; week <= s.durationWeeks; week++) {
+    const decisions = await openRouterOverrides(
+      states,
+      s,
+      week,
+      openRouterApiKey,
+      budget,
+    );
+    usedOpenRouter ||= decisions.overrides.length > 0;
+    warnings.push(...decisions.warnings);
+    states = stepWorld(states, s, week, flows, decisions.overrides);
+    frames.push(makeFrame(week, states, flows));
+  }
+  return {
+    scenario: s,
+    frames,
+    providerPolicy: openRouterApiKey ? "openrouter" : "deterministic",
+    providerMode: usedOpenRouter ? "openrouter" : "deterministic",
+    warnings: warnings.slice(0, 50),
+    methodology:
+      "Population-weighted demographic and sector cohorts evolve each week. When OpenRouter is configured, bounded decisions for representative high-impact cohorts are made before the next state transition and their mitigation/adaptation effects feed subsequent weeks. Unqueried cohorts use deterministic bounded rules. International links propagate pressure. This is exploratory scenario analysis, not forecasting.",
+  };
+}

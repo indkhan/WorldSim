@@ -1,15 +1,9 @@
-# Testing strategy
+# Testing
 
-The included Vitest suite checks the invariants most likely to silently invalidate results: population scaling, global coverage, within-country heterogeneity, population-weighted aggregation, bounded state, action effects, deterministic replay, international links, zero-shock baseline behavior and historical branching.
+Use Node 22.12+ and npm ci. Run npm run check and npm run test:e2e. The browser suite starts an isolated WorldSim server on port 3117 and refuses to reuse a running server. Database, server provider key and private-password environment settings are blanked for this local test server. Provider calls are mocked.
 
-Before a public release, add:
+Regression coverage includes every-country actor shares and production, exact compact round trips and default/maximum payload sizes, horizon prefix invariance, baseline compatibility/lifecycle, same-checkpoint branch baselines, replay identity, branch validation/history, optional persistence failures, provider schema/confidence/failures/deadlines/call budgets and private access. Playwright covers native modal keyboard focus/restoration, baseline lifecycle, country search, playback, mobile Methodology, save status/history and ancestry.
 
-- route tests for Zod validation and provider failures;
-- mocked OpenRouter decision tests proving decisions alter the following week's state;
-- mocked OpenRouter tests proving narration failure is non-fatal;
-- Playwright tests for scenario creation, country drill-down, timeline playback, baseline comparison and branching;
-- accessibility checks for keyboard navigation and contrast;
-- load tests around maximum horizon/provider fan-out;
-- golden scenario snapshots to detect accidental model-mechanics drift.
+Disposable PostgreSQL integration must be performed when a database service is available. Mocked Prisma boundaries verify contracts, not real connectivity or database transactions. See IMPLEMENTATION.md for the checks actually performed.
 
-Run `npm run check` locally and in CI before merging.
+Follow-up: measured data ingestion, sensitivity analysis, charts, distributed ownership/quota tests if public multiuser support is built, and broader accessibility/visual/load testing. Model scores remain exploratory synthetic outputs, not validated probabilities.

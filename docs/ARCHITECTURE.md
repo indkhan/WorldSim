@@ -27,7 +27,7 @@ The provider-aware loop lives in `provider-runner.ts`; the pure deterministic en
 
 OpenRouter's `~typesafe/jev-latest` decision model receives a textual state plus a fixed option set for the relevant actor type. It does not calculate economic arithmetic. Returned choices are mapped to bounded action-effect coefficients. Provider errors fall back to deterministic rules and are surfaced in `warnings` rather than corrupting the run.
 
-`DECISION_MAX_COUNTRIES` limits provider fan-out. Within each selected country, the runner queries a few high-weight representative cohorts per actor type. This gives demographic variation without turning every synthetic agent into a network request.
+`DECISION_MAX_COUNTRIES` limits provider fan-out. Within each selected country, the runner queries one high-weight representative cohort per actor type, serially. All decisions and narration share a total request budget (24 by default, at most 60) and deadline (60 seconds by default, at most 120). Every request including validation/narration times out after at most five seconds, including response body parsing. There are no paid retries; failures use deterministic fallback. Fatal credential/billing failures stop later calls. This gives demographic variation without turning every synthetic agent into a network request.
 
 ## OpenRouter boundary
 
@@ -39,7 +39,7 @@ The same OpenRouter key also powers optional post-processing narration. It recei
 
 ## Vercel execution
 
-The current route uses the Node runtime and `maxDuration=1800`. This is appropriate for a personal/pet deployment with bounded provider fan-out. For larger public workloads:
+The current route uses the Node runtime and `maxDuration=300`. This is appropriate for a personal/pet deployment with bounded provider fan-out. For larger public workloads:
 
 - create the Simulation row with status `queued`;
 - publish one or more week/provider batches to Vercel Queues or Workflow;
@@ -52,4 +52,10 @@ This avoids depending on in-memory process lifetime and allows retries without r
 
 ## Security
 
-Provider keys never cross into client components. Zod validates public simulation input. Provider calls have timeouts/retries. Vercel headers disable unnecessary browser capabilities and add basic hardening. For a public deployment add authentication, per-user quotas, rate limiting and a server-side cost budget before enabling provider-backed runs.
+Server environment keys remain server-side. User-supplied keys live in tab React state and travel to server routes over HTTPS; they are never persisted or logged. Zod validates simulation input and provider choices/confidence. Provider calls have timeouts and budgets. Vercel headers disable unnecessary browser capabilities and add basic hardening. Production is a private single-owner deployment protected by HTTP Basic authentication on pages and every API route. Missing/short WORLDSIM_PASSWORD fails closed. The same owner controls all saved runs; anonymous requests cannot spend an environment key even in development. Cross-origin mutations are rejected. Public multiuser operation is unsupported: replace private access with real identity, per-owner database queries and distributed quotas/rate limits before enabling it.
+
+## Compact timeline contract
+
+API and new stored results use `worldsim-v2`: a complete initial metadata frame plus base64 gzip weekly patches. Unchanged country/cohort fields and links are omitted; browser DecompressionStream and server node:zlib restore exact values. Numeric precision is retained. Legacy full-frame saved results are compacted on read. The in-memory engine/inspector contract stays unchanged.
+
+Replay merges database identity and timestamps. Optional save failures return results with `saveStatus: unsaved` and a warning; list/detail/checkpoint infrastructure failures return 503. Branch requests explicitly select deterministic continuation, preserve historical provider decisions, validate the branch frame and require an end horizon after it.

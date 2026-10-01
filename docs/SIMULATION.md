@@ -2,7 +2,7 @@
 
 ## Representation
 
-WorldSim scales country population into a small weighted synthetic population. `agentCount(population)` targets 100 agents for one billion residents, caps at 100 and keeps at least three agents for small countries. Agents with the same actor/income/urbanity/sector combination are compressed into cohorts. `weight` is the number of residents represented; all country aggregation uses this weight.
+WorldSim scales country population into a small weighted synthetic population. `agentCount(population)` targets 100 agents for one billion residents, caps at 100 and keeps at least three agents for small countries. Agents with the same actor/income/urbanity/sector combination are compressed into cohorts. Every country reserves household, business and government representation. Their fixed aggregate shares are 80%, 15% and 5%, independent of sample size. `weight` allocates the country population across these synthetic actor channels; weights sum to country population. These are modeling weights, not measured actor demographics. All country aggregation uses this weight.
 
 This is a computational sampling device, not survey microdata.
 
@@ -23,11 +23,11 @@ For example, an energy-sector business and a low-income household in the same co
 
 Each week combines:
 
-- event shock intensity and decay;
+- event shock intensity and exponential decay (`exp(-week / max(4, shockDurationWeeks * 1.45))`);
 - whether the event targets the country's region;
 - cohort-specific exposure;
 - pressure arriving through international links;
-- country adaptive capacity and time adaptation;
+- country adaptive capacity and time adaptation (`min(0.55, week / adaptationWeeks * (0.22 + capacity * 0.25))`);
 - cohort resilience;
 - mitigation from the cohort's previous action.
 
@@ -47,7 +47,7 @@ These links are proxies, not a measured global input-output table. A future data
 
 ## Baselines and branches
 
-A baseline reruns the same engine with zero introduced shock. A branch preserves all parent frames through the selected week and then evolves from that exact state under changed branch assumptions. This is preferable to restarting from week zero and merely relabeling the run.
+A baseline takes the completed scenario settings, changing only severity to zero. Edited controls do not affect it. New runs, branches and replay clear the previous baseline; incompatible settings/endpoints are rejected. A branch baseline starts at the same parent checkpoint as the branch. Independently queried provider choices can differ; deltas are model comparisons, not clean causal attribution. A branch preserves all parent frames through the selected week and then evolves from that exact state under changed branch assumptions. This is preferable to restarting from week zero and merely relabeling the run.
 
 ## Interpretation
 
@@ -56,3 +56,9 @@ Appropriate statement: “Under these model assumptions, low-income urban househ
 Inappropriate statement: “There is an 82% chance low-income residents will behave this way.”
 
 WorldSim does not establish causal effects, public opinion, government intent, election outcomes, market forecasts or individual behavior.
+
+## Numerical inputs and engine version 2
+
+Family, severity, seed, target regions, shockDurationWeeks and adaptationWeeks affect deterministic state. durationWeeks is only the viewing horizon; both timing parameters default to 12. Changing the horizon preserves an identical prefix. The shock duration parameter is a decay scale, not a hard cutoff.
+
+Description and assumptions are descriptive; the deterministic engine does not interpret them. Provider decisions may depend on description and feed bounded action effects into numerical state. Displayed import/export/energy exposure fields are unused by transitions. Links and capacities are synthetic proxies. Actor weighting and timing changed from engine 1.1; saved history is preserved, but new continuations use engine 2 mechanics.

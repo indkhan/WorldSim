@@ -12,7 +12,8 @@
     "test:e2e": "playwright test",
     "check": "npm run typecheck && npm run lint && npm test && npm run build",
     "db:push": "prisma db push",
-    "db:generate": "prisma generate"
+    "db:generate": "prisma generate",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@prisma/client": "^6.16.2",
@@ -34,6 +35,20 @@
     "prisma": "^6.16.2",
     "tailwindcss": "^4.1.13",
     "typescript": "^5.9.2",
-    "vitest": "^3.2.4"
+    "vitest": "^4.1.11"
+  },
+  "overrides": {
+    "next": {
+      "postcss": "^8.5.28"
+    },
+    "@prisma/config": {
+      "deepmerge-ts": "^8.0.2"
+    },
+    "vitest": {
+      "vite": "^7.3.6"
+    }
+  },
+  "engines": {
+    "node": ">=22.12.0"
   }
 }

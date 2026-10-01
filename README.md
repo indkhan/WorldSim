@@ -18,28 +18,32 @@ WorldSim is a Vercel-first, interactive global scenario laboratory. Introduce an
 - Persisted simulations and replay with PostgreSQL/Prisma.
 - Timeline branching from an actual historical frame; pre-branch state is preserved.
 - Seeded deterministic fallback mode for reproducible tests and zero-cost local development.
-- Vercel Node runtime, server-only secrets, long-duration route support, CI, schema validation and provider retry/timeout handling.
+- Vercel Node runtime, server-only secrets, long-duration route support, CI, schema validation and provider timeout/budget handling.
 
 ## Quick start
 
 ```bash
 cp .env.example .env
-npm install
+npm ci
 npm run db:generate
 # only when DATABASE_URL is configured
 npm run db:push
 npm run dev
 ```
 
-Open `http://localhost:3000`. The core simulator works without a database or AI key. Persistence/branching require PostgreSQL. Provider features activate when one OpenRouter key is configured.
+Open `http://localhost:3000`. The core simulator works without a database or AI key. Persistence/branching require PostgreSQL. Provider features use a supplied OpenRouter key. A server key can only be selected by an authenticated private owner. Production requires WORLDSIM_PASSWORD (at least 16 characters) and HTTP Basic authentication; local development works without it. Use HTTPS in production.
 
 ## Environment variables
 
 | Variable | Required | Purpose |
 | --- | --- | --- |
 | `DATABASE_URL` | for persistence | PostgreSQL connection used by Prisma |
-| `OPENROUTER_API_KEY` | no | Enables OpenRouter decisions and narrative analysis |
-| `DECISION_MAX_COUNTRIES` | no | Cost/latency guardrail for countries evaluated per week |
+| `OPENROUTER_API_KEY` | no | Server key, accessible only to the authenticated private owner |
+| `WORLDSIM_PASSWORD` | in production | Unique private deployment password, at least 16 characters |
+| `WORLDSIM_USERNAME` | no | HTTP Basic username (default `worldsim`) |
+| `PROVIDER_MAX_CALLS` | no | Total requests per run, including narration; default 24, maximum 60 |
+| `PROVIDER_MAX_SECONDS` | no | Total provider time budget; default 60, maximum 120 seconds |
+| `DECISION_MAX_COUNTRIES` | no | Countries evaluated per week (1-12, default 6) |
 | `OPENROUTER_MODEL` | no | OpenRouter narration model slug |
 | `NEXT_PUBLIC_APP_URL` | recommended | Application URL used in OpenRouter attribution headers |
 
@@ -67,7 +71,7 @@ GitHub Actions runs `npm ci` and `npm run check` on pushes to `main` and pull re
 5. Run `npm run db:push` for this pet-project schema (for a production team, replace this with committed Prisma migrations).
 6. Deploy.
 
-The simulation route opts into the Node runtime and a long maximum duration. For larger workloads, move provider batches to Vercel Queues/Workflow while keeping the same checkpoint/state contracts; see `docs/ARCHITECTURE.md`.
+The simulation route uses the Node runtime and a 300-second maximum duration. Responses use lossless compressed weekly patches plus static metadata. For larger workloads, move provider batches to Vercel Queues/Workflow while keeping the same checkpoint/state contracts; see `docs/ARCHITECTURE.md`.
 
 ## Repository map
 
@@ -92,6 +96,8 @@ docs/                        architecture, methodology, data and operations
 - `docs/OPERATIONS.md` — deployment, cost controls, observability and failure modes.
 - `docs/TESTING.md` — quality strategy and recommended additional tests.
 
-## Current verification note
+## Verification
 
-The source tree has been syntax-checked with TypeScript's parser. The construction environment could not complete `npm install` because package retrieval timed out, so a full dependency-resolved `npm run check` could not be executed here. Run the quality gates after installing dependencies; CI is included so remaining integration issues are visible immediately.
+Use Node 22.12+ and npm (the CI package manager). See `docs/IMPLEMENTATION.md` for the measured results and persistence limitations.
+
+Viewing horizon (1-104 weeks) only extends observation. Shock decay and adaptation have separate 12-week defaults. The deterministic engine does not interpret event description or assumptions as numerical instructions. All actor weights, exposure/capacity fields and international links are synthetic.

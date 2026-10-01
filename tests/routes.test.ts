@@ -1,0 +1,10 @@
+import {afterEach,expect,it,vi} from 'vitest';
+vi.mock('@/lib/db/prisma',()=>({hasDatabase:()=>true,prisma:{simulation:{create:vi.fn(),findUnique:vi.fn(),findMany:vi.fn()}}}));
+import {prisma} from '@/lib/db/prisma';
+import {POST,GET as list} from '@/app/api/simulations/route';
+import {GET} from '@/app/api/simulations/[id]/route';
+import {unpackResult} from '@/lib/simulation/transport';
+afterEach(()=>vi.resetAllMocks());
+it('restores row identity on replay',async()=>{vi.mocked(prisma.simulation.findUnique).mockResolvedValue({id:'saved',createdAt:new Date('2026-01-01'),result:{scenario:{},frames:[]}} as never);const r=await GET(new Request('http://localhost'),{params:Promise.resolve({id:'saved'})});expect(await r.json()).toMatchObject({id:'saved',createdAt:'2026-01-01T00:00:00.000Z'})});
+it('keeps computed results when optional saving fails',async()=>{vi.mocked(prisma.simulation.create).mockRejectedValue(new Error('connection credentials'));const r=await POST(new Request('http://localhost',{method:'POST',headers:{'x-provider-mode':'deterministic'},body:JSON.stringify({title:'Test',description:'Synthetic shock',family:'energy',severity:70,durationWeeks:1,seed:42})}));expect(r.status).toBe(200);const result=await unpackResult(await r.json());expect(result.frames).toHaveLength(2);expect(result).toMatchObject({saveStatus:'unsaved'});expect(JSON.stringify(result)).not.toContain('connection credentials')});
+it('returns a controlled infrastructure error on history failure',async()=>{vi.mocked(prisma.simulation.findMany).mockRejectedValue(new Error('secret'));const r=await list();expect(r.status).toBe(503);expect(await r.text()).not.toContain('secret')});

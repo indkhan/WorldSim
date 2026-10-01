@@ -7,5 +7,5 @@ export type DecisionSummary={actor:ActorKind;action:string;share:number;rational
 export type CountryState={code:string;name:string;region:string;subregion:string;population:number;lat:number;lng:number;pressure:number;householdStrain:number;productionPressure:number;policyResponse:number;agents:number;cohorts:CohortState[];decisions:DecisionSummary[];imports:number;exports:number;energyExposure:number;adaptiveCapacity:number};
 export type Flow={from:string;to:string;strength:number;kind:"trade"|"energy"|"regional"};
 export type SimulationFrame={week:number;countries:CountryState[];flows:Flow[];globalPressure:number;globalHouseholdStrain:number;globalProductionPressure:number};
-export type SimulationResult={id?:string;scenario:ScenarioInput;frames:SimulationFrame[];methodology:string;analysis?:string|null;providerMode:"deterministic"|"openrouter";createdAt?:string;warnings?:string[]};
+export type SimulationResult={id?:string;saveStatus?:"saved"|"unsaved";scenario:ScenarioInput;frames:SimulationFrame[];methodology:string;analysis?:string|null;providerMode:"deterministic"|"openrouter";createdAt?:string;warnings?:string[]};
 export type DecisionOverride={countryCode:string;cohortId:string;action:string;confidence:number;effect:number;rationale:string};

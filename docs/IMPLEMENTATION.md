@@ -1,3 +1,5 @@
+> Historical report. Database persistence and saved-run history have since been removed. See README.md and SHIPPING.md for the current setup.
+
 # Implementation and verification (2026-10-01)
 
 The home page now uses the shipping lab described in [SHIPPING.md](SHIPPING.md). The original global engine, setup and earlier verification described below remain relevant to `/legacy`.

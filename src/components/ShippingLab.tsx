@@ -28,11 +28,6 @@ const WorldMap = dynamic(() => import("./WorldMap"), {
   ssr: false,
   loading: () => <p>Loading the world view…</p>,
 });
-type History = {
-  id: string;
-  title: string;
-  input: { shipping?: ShippingPlan };
-};
 type Metric = "output" | "inventory" | "priceIndex";
 const metricLabels = {
   output: "Output · baseline = 100",
@@ -143,31 +138,14 @@ export default function ShippingLab({
     [status, setStatus] = useState("Demo ready · no API key required"),
     [error, setError] = useState("");
   const [view, setView] = useState<"chain" | "globe">("chain"),
-    [metric, setMetric] = useState<Metric>("output"),
-    [history, setHistory] = useState<History[]>([]);
+    [metric, setMetric] = useState<Metric>("output");
   const controller = useRef<AbortController | null>(null),
     replayFile = useRef<HTMLInputElement | null>(null);
   const frame = result.frames[Math.min(week, result.frames.length - 1)],
     country = frame.countries.find((c) => c.code === selected)!;
   const resources = country.shipping!,
     plan = result.scenario.shipping!;
-  useEffect(() => {
-    const c = new AbortController();
-    fetch("/api/simulations", { signal: c.signal })
-      .then((r) => (r.ok ? r.json() : []))
-      .then((rows) =>
-        setHistory(
-          Array.isArray(rows)
-            ? rows.filter((r: History) => r.input?.shipping)
-            : [],
-        ),
-      )
-      .catch(() => {});
-    return () => {
-      c.abort();
-      controller.current?.abort();
-    };
-  }, []);
+  useEffect(() => () => controller.current?.abort(), []);
   useEffect(() => {
     if (!playing) return;
     const t = setInterval(
@@ -242,17 +220,8 @@ export default function ShippingLab({
             setComparison(null);
             completed = true;
             setStatus(
-              `Completed ${next.scenario.durationWeeks} weeks · ${next.providerMode === "openrouter" ? "AI decisions with recorded evidence" : "deterministic rules"} · ${next.saveStatus === "saved" ? "saved" : "export to keep this replay"}`,
+              `Completed ${next.scenario.durationWeeks} weeks · ${next.providerMode === "openrouter" ? "AI decisions with recorded evidence" : "deterministic rules"} · export to keep this replay`,
             );
-            if (next.id)
-              setHistory((h) => [
-                {
-                  id: next.id!,
-                  title: next.scenario.title,
-                  input: { shipping: next.scenario.shipping },
-                },
-                ...h,
-              ]);
           }
         }
         if (done) break;
@@ -323,28 +292,6 @@ export default function ShippingLab({
     setError("");
     setComparison(branchShipping(result, policy, week));
   }
-  async function load(id: string) {
-    setBusy(true);
-    setPlaying(false);
-    setError("");
-    controller.current = new AbortController();
-    try {
-      const r = await fetch(`/api/simulations/${encodeURIComponent(id)}`, {
-        signal: controller.current.signal,
-      });
-      if (!r.ok) throw new Error("Saved replay unavailable.");
-      const next = parseShippingReplay(await unpackResult(await r.json()));
-      setResult(next);
-      setDraft(next.scenario.shipping!);
-      setWeek(0);
-      setComparison(null);
-      setStatus("Saved replay loaded · no model calls");
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Saved replay unavailable.");
-    } finally {
-      setBusy(false);
-    }
-  }
   async function openReplay(file?: File) {
     if (!file) return;
     setError("");
@@ -353,10 +300,9 @@ export default function ShippingLab({
       if (file.size > 2_000_000)
         throw new Error("Replay file must be under 2 MB.");
       const next = parseShippingReplay(JSON.parse(await file.text()));
-      // A downloaded row ID is provenance, not proof the row exists on this server.
+      // Ignore storage metadata from older exports.
       delete next.id;
       delete next.createdAt;
-      next.saveStatus = "unsaved";
       setResult(next);
       setDraft(next.scenario.shipping!);
       setWeek(0);
@@ -368,50 +314,6 @@ export default function ShippingLab({
       );
     } finally {
       if (replayFile.current) replayFile.current.value = "";
-    }
-  }
-  async function saveComparison() {
-    if (!result.id || !comparison) return;
-    setBusy(true);
-    setError("");
-    controller.current = new AbortController();
-    try {
-      const r = await fetch(
-        `/api/simulations/${encodeURIComponent(result.id)}/branch`,
-        {
-          method: "POST",
-          signal: controller.current.signal,
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({
-            policy: comparison.scenario.shipping!.policy,
-            branchWeek: comparison.scenario.branchWeek,
-          }),
-        },
-      );
-      if (!r.ok)
-        throw new Error(
-          "Saving unavailable. Export this comparison to keep it.",
-        );
-      const next = parseShippingReplay(await unpackResult(await r.json()));
-      setComparison(next);
-      setStatus(
-        next.saveStatus === "saved"
-          ? "Policy comparison saved · no new model calls"
-          : "Comparison unsaved · export to keep it",
-      );
-      if (next.id)
-        setHistory((h) => [
-          {
-            id: next.id!,
-            title: next.scenario.title,
-            input: { shipping: next.scenario.shipping },
-          },
-          ...h,
-        ]);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Saving unavailable.");
-    } finally {
-      setBusy(false);
     }
   }
   function download() {
@@ -471,6 +373,7 @@ export default function ShippingLab({
         </Link>
         <nav>
           <Link href="/methodology">How it works</Link>
+          <a href="/explainer.html">Visual guide</a>
           <button onClick={() => setGate(true)} disabled={busy}>
             <KeyRound size={15} />
             {key ? "OpenRouter connected" : "Connect AI"}
@@ -682,21 +585,6 @@ export default function ShippingLab({
             >
               Cancel
             </button>
-          )}
-          {history.length > 0 && (
-            <details className="ship-advanced">
-              <summary>Saved replays ({history.length})</summary>
-              {history.map((h) => (
-                <button
-                  className="ship-saved"
-                  disabled={busy}
-                  key={h.id}
-                  onClick={() => load(h.id)}
-                >
-                  {h.title}
-                </button>
-              ))}
-            </details>
           )}
         </aside>
         <div className="ship-stage" id="shipping-stage" tabIndex={-1}>
@@ -1115,11 +1003,6 @@ export default function ShippingLab({
                   preserved exactly. This comparison does not rerun adaptive AI
                   choices.
                 </small>
-                {result.id && comparison.saveStatus !== "saved" && (
-                  <button disabled={busy} onClick={saveComparison}>
-                    Save comparison
-                  </button>
-                )}
               </div>
             )}
           </section>
@@ -1247,7 +1130,7 @@ export default function ShippingLab({
                 queued orders and normalized decisions. Loading or exporting it
                 makes no model calls. Policy branches use the same recorded
                 non-policy actions. Database saves are optional; export an
-                unsaved run to keep it.
+                run to keep it.
               </p>
             </details>
             {(result.warnings ?? []).length > 0 && (

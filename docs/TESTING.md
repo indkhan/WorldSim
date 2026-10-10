@@ -1,11 +1,9 @@
 # Testing
 
-The home page now uses the shipping lab described in [SHIPPING.md](SHIPPING.md). The original global engine, setup and earlier verification described below remain relevant to `/legacy`.
+Use Node 22.12+ and npm ci. Run npm run check and npm run test:e2e. Playwright starts an isolated development server on port 3117; it refuses to reuse a running server. Stop a production server before browser tests because both modes use .next build artifacts.
 
-Use Node 22.12+ and npm ci. Run npm run check and npm run test:e2e. The browser suite starts an isolated WorldSim server on port 3117 and refuses to reuse a running server. Database, server provider key and private-password environment settings are blanked for this local test server. Provider calls are mocked.
+Unit tests cover numerical invariants, actor shares, resources, shipment conservation, delayed policies, exact checkpoint prefixes, provider validation and budgets, portable replay validation, compact round trips and key-free API execution. Explainer charts are checked against fresh engine results.
 
-Regression coverage includes every-country actor shares and production, exact compact round trips and default/maximum payload sizes, horizon prefix invariance, baseline compatibility/lifecycle, same-checkpoint branch baselines, replay identity, branch validation/history, optional persistence failures, provider schema/confidence/failures/deadlines/call budgets and password-free access with visitor-supplied provider keys. Playwright covers native modal keyboard focus/restoration, baseline lifecycle, country search, playback, mobile Methodology, save status/history and ancestry.
+Browser tests cover the globe, country inspection, playback, modal keyboard behavior, baseline lifecycle, local branching, shipping replay import/export and policy comparisons. The visual guide is tested offline, at four widths, with recorded weeks and both policy options.
 
-Disposable PostgreSQL integration must be performed when a database service is available. Mocked Prisma boundaries verify contracts, not real connectivity or database transactions. See IMPLEMENTATION.md for the checks actually performed.
-
-Follow-up: measured data ingestion, sensitivity analysis, charts, distributed ownership/quota tests if public multiuser support is built, and broader accessibility/visual/load testing. Model scores remain exploratory synthetic outputs, not validated probabilities.
+There are no mocked database boundaries or persistence tests: those features have been removed. Historical implementation/review reports describe earlier versions, not the current architecture.

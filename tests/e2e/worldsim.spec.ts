@@ -44,9 +44,7 @@ test("keeps optional controls tucked away and fits narrow screens", async ({
   await expect(page.getByLabel("Shock decay scale (weeks)")).toBeHidden();
   await page.getByText("Advanced settings", { exact: true }).click();
   await expect(page.getByLabel("Shock decay scale (weeks)")).toBeVisible();
-  await expect(page.getByLabel("Saved runs")).toBeHidden();
-  await page.locator(".run-library > summary").click();
-  await expect(page.getByLabel("Saved runs")).toBeVisible();
+  await expect(page.getByLabel("Saved runs")).toHaveCount(0);
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= window.innerWidth,
@@ -203,116 +201,32 @@ test("keeps Methodology visible on mobile", async ({ page }) => {
   await page.getByRole("button", { name: "Use deterministic mode" }).click();
   await expect(page.getByRole("link", { name: "Methodology" })).toBeVisible();
 });
-test("loads saved history, metadata and parent ancestry", async ({
-  page,
-  request,
-}) => {
-  const response = await request.post("/api/simulations", {
-    headers: { "x-provider-mode": "deterministic" },
-    data: {
-      title: "Saved example",
-      description: "Synthetic energy disruption.",
-      family: "energy",
-      severity: 70,
-      durationWeeks: 4,
-      seed: 42,
-    },
+
+test("branches the current run locally and resets its baseline without saved history", async ({ page }) => {
+  test.setTimeout(60000);
+  const persistenceRequests: string[] = [];
+  page.on("request", request => {
+    if (request.url().includes("/api/simulations") && request.method() !== "POST")
+      persistenceRequests.push(request.url());
+    if (request.url().includes("/api/simulations/"))
+      persistenceRequests.push(request.url());
   });
-  const packed = await response.json();
-  packed.id = "child";
-  packed.createdAt = "2026-01-01T00:00:00.000Z";
-  packed.saveStatus = "saved";
-  packed.scenario.parentSimulationId = "parent";
-  packed.scenario.branchWeek = 2;
-  await page.route("**/api/simulations", (route) =>
-    route.request().method() === "GET"
-      ? route.fulfill({
-          json: [
-            {
-              id: "child",
-              title: "Saved example",
-              createdAt: packed.createdAt,
-            },
-          ],
-        })
-      : route.continue(),
-  );
-  await page.route("**/api/simulations/child", (route) =>
-    route.fulfill({ json: packed }),
-  );
   await page.goto("/legacy");
   await page.getByRole("button", { name: "Use deterministic mode" }).click();
-  await page.locator(".run-library > summary").click();
-  await page.getByRole("button", { name: "Refresh saved history" }).click();
-  await expect(page.getByLabel("Saved runs")).toContainText("Saved example");
-  await page.getByLabel("Saved runs").selectOption("child");
-  await expect(page.getByText("Saved example", { exact: true })).toBeVisible();
-  await expect(page.locator(".run-library").getByRole("status")).toContainText("Saved 2026-01-01");
-  await expect(
-    page.getByRole("button", { name: "Replay parent parent (week 2)" }),
-  ).toBeVisible();
-  await expect(
-    page.getByRole("button", { name: "Branch from week 0" }),
-  ).toBeEnabled();
-});
-test("clears a previous baseline when branching a saved run", async ({
-  page,
-  request,
-}) => {
-  const response = await request.post("/api/simulations", {
-    headers: { "x-provider-mode": "deterministic" },
-    data: {
-      title: "Saved run",
-      description: "Synthetic energy disruption.",
-      family: "energy",
-      severity: 70,
-      durationWeeks: 4,
-      seed: 42,
-    },
-  });
-  const packed = await response.json();
-  packed.id = "parent";
-  packed.createdAt = "2026-01-01T00:00:00.000Z";
-  packed.saveStatus = "saved";
-  await page.route("**/api/simulations", (route) =>
-    route.request().method() === "GET"
-      ? route.fulfill({
-          json: [
-            { id: "parent", title: "Saved run", createdAt: packed.createdAt },
-          ],
-        })
-      : route.continue(),
-  );
-  await page.route("**/api/simulations/parent", (route) =>
-    route.fulfill({ json: packed }),
-  );
-  await page.route("**/api/simulations/parent/branch", (route) =>
-    route.fulfill({
-      json: {
-        ...packed,
-        id: "child",
-        scenario: {
-          ...packed.scenario,
-          parentSimulationId: "parent",
-          branchWeek: 0,
-          title: "Branch: Saved run",
-        },
-      },
-    }),
-  );
-  await page.goto("/legacy");
-  await page.getByRole("button", { name: "Use deterministic mode" }).click();
-  await page.locator(".run-library > summary").click();
-  await page.getByRole("button", { name: "Refresh saved history" }).click();
-  await expect(page.getByLabel("Saved runs")).toContainText("Saved run");
-  await page.getByLabel("Saved runs").selectOption("parent");
-  await expect(page.getByText("Saved run", { exact: true })).toBeVisible();
+  await page.getByLabel("World event").fill("Synthetic energy disruption for testing.");
+  await page.getByLabel("Horizon in weeks").fill("4");
+  await page.getByRole("button", { name: "Run world" }).click();
+  await expect(page.getByRole("button", { name: "Run world" })).toBeEnabled();
+  await page.getByRole("button", { name: "Pause", exact: true }).click();
+  await page.getByLabel("Simulation week").fill("2");
   await page.getByRole("button", { name: "Compare to baseline" }).click();
   await expect(page.getByText("GLOBAL PRESSURE DELTA")).toBeVisible();
-  await page.getByRole("button", { name: "Branch from week 0" }).click();
-  await expect(
-    page.getByText("Branch: Saved run", { exact: true }),
-  ).toBeVisible();
+  await page.getByRole("button", { name: "Branch from week 2" }).click();
+  await expect(page.getByText("Branch: Custom world event", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Compare", exact: true }).click();
   await expect(page.getByText("Create a baseline")).toBeVisible();
+  await page.getByRole("button", { name: "Compare to baseline" }).click();
+  await expect(page.getByText("GLOBAL PRESSURE DELTA")).toBeVisible();
+  await expect(page.getByLabel("Saved runs")).toHaveCount(0);
+  expect(persistenceRequests).toEqual([]);
 });

@@ -9,6 +9,8 @@ import { CountryInspector } from "./simulation/CountryInspector";
 import { ComparisonPanel, WorldSummary } from "./simulation/AnalysisPanels";
 import { unpackResult } from "@/lib/simulation/transport";
 import type { ScenarioInput } from "@/lib/simulation/types";
+import { continueFromFrame } from "@/lib/simulation/engine";
+import { scenarioSchema } from "@/lib/simulation/schema";
 type Tab = "world" | "country" | "compare";
 export default function SimulationLab({
   initial,
@@ -17,18 +19,14 @@ export default function SimulationLab({
 }) {
   const pending = useRef<AbortController | null>(null);
   const [query, setQuery] = useState(""),
-    [history, setHistory] = useState<
-      {
-        id: string;
-        title: string;
-        createdAt: string;
-        input?: ScenarioInput;
-      }[]
-    >([]),
     [shockDuration, setShockDuration] = useState(12),
     [adaptation, setAdaptation] = useState(12);
   const [result, setResult] = useState(initial),
     [baseline, setBaseline] = useState<SimulationResult | null>(null),
+    [branchCheckpoint, setBranchCheckpoint] = useState<{
+      parent: SimulationResult;
+      week: number;
+    } | null>(null),
     [week, setWeek] = useState(0),
     [playing, setPlaying] = useState(false),
     [code, setCode] = useState<string | null>(null),
@@ -113,6 +111,7 @@ export default function SimulationLab({
   const run = () =>
       execute(async () => {
         setBaseline(null);
+        setBranchCheckpoint(null);
         setResult(
           await request({
             title: "Custom world event",
@@ -139,20 +138,14 @@ export default function SimulationLab({
           throw new Error(
             "This run used OpenRouter. Reload and connect OpenRouter before generating its baseline.",
           );
-        if (result.scenario.parentSimulationId) {
-          const r = await fetch(`/api/simulations/${result.id}/branch`, {
-            method: "POST",
-            headers: { "content-type": "application/json" },
-            signal: pending.current?.signal,
-            body: JSON.stringify({
-              ...result.scenario,
-              severity: 0,
-              providerPolicy: "deterministic",
-              baseline: true,
-            }),
-          });
-          if (!r.ok) throw new Error((await r.json()).error);
-          setBaseline(await unpackResult(await r.json()));
+        if (branchCheckpoint) {
+          setBaseline(
+            continueFromFrame(
+              branchCheckpoint.parent,
+              { ...result.scenario, severity: 0 },
+              branchCheckpoint.week,
+            ),
+          );
         } else
           setBaseline(
             await request(
@@ -166,51 +159,25 @@ export default function SimulationLab({
       execute(async () => {
         setBaseline(null);
         setPlaying(false);
-        if (!result.id)
-          throw new Error(
-            "Configure DATABASE_URL and run a persisted simulation before branching.",
-          );
-        const r = await fetch(`/api/simulations/${result.id}/branch`, {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          signal: pending.current?.signal,
-          body: JSON.stringify({
+        const input = {
+          ...scenarioSchema.parse({
+            ...result.scenario,
+            title: `Branch: ${result.scenario.title}`.slice(0, 120),
             description,
             severity,
-            branchWeek: week,
             family,
             durationWeeks: duration,
             shockDurationWeeks: shockDuration,
             adaptationWeeks: adaptation,
-            providerPolicy: "deterministic",
           }),
-        });
-        if (!r.ok) throw new Error((await r.json()).error);
-        setResult(await unpackResult(await r.json()));
+          branchWeek: week,
+        };
+        const next = continueFromFrame(result, input, week);
+        setBranchCheckpoint({ parent: result, week });
+        setResult(next);
         setCode(null);
         setTab("world");
       });
-  async function load(id: string) {
-    await execute(async () => {
-      const r = await fetch(`/api/simulations/${id}`, {
-        signal: pending.current?.signal,
-      });
-      if (!r.ok) throw new Error((await r.json()).error);
-      const saved = await unpackResult(await r.json());
-      if (saved.scenario.shipping) throw new Error("Open shipping replays in the new lab at the home page.");
-      setResult(saved);
-      setBaseline(null);
-      setWeek(0);
-      setTab("world");
-      setCode(null);
-      setDescription(saved.scenario.description);
-      setFamily(saved.scenario.family);
-      setSeverity(saved.scenario.severity);
-      setDuration(saved.scenario.durationWeeks);
-      setShockDuration(saved.scenario.shockDurationWeeks ?? 12);
-      setAdaptation(saved.scenario.adaptationWeeks ?? 12);
-    });
-  }
   const select = (c: { code: string }) => {
     setCode(c.code);
     setTab("country");
@@ -251,7 +218,7 @@ export default function SimulationLab({
           week={week}
           loading={loading}
           hasRun={hasRun}
-          canBranch={Boolean(result.id) && week < duration}
+          canBranch={hasRun && week < duration}
           shockDuration={shockDuration}
           adaptation={adaptation}
           onShockDuration={setShockDuration}
@@ -334,58 +301,6 @@ export default function SimulationLab({
               <span>Adaptation</span>
             </div>
           </div>
-          <details className="run-library">
-            <summary>Saved runs</summary>
-            <div className="save-status" role="status">
-              {hasRun
-                ? result.saveStatus === "saved"
-                  ? `Saved ${result.createdAt || ""}`
-                  : "Unsaved. Save required for replay and branching."
-                : "No saved simulation selected."}
-              {result.scenario.parentSimulationId && (
-                <button
-                  disabled={loading}
-                  onClick={() => load(result.scenario.parentSimulationId!)}
-                >
-                  Replay parent {result.scenario.parentSimulationId} (week{" "}
-                  {result.scenario.branchWeek})
-                </button>
-              )}
-            </div>
-            <div className="history">
-              <button
-                disabled={loading}
-                onClick={() =>
-                  execute(async () => {
-                    const r = await fetch("/api/simulations", {
-                      signal: pending.current?.signal,
-                    });
-                    if (!r.ok) throw new Error((await r.json()).error);
-                    const rows = await r.json();
-                    setHistory(rows.filter((row: { input?: ScenarioInput }) => !row.input?.shipping));
-                  })
-                }
-              >
-                Refresh saved history
-              </button>
-              <label htmlFor="saved-run">Saved runs</label>
-              <select
-                id="saved-run"
-                value=""
-                disabled={loading}
-                onChange={(e) => {
-                  if (e.target.value) load(e.target.value);
-                }}
-              >
-                <option value="">Select a saved run</option>
-                {history.map((r) => (
-                  <option key={r.id} value={r.id}>
-                    {r.title} - {r.createdAt}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </details>
         </section>
         <aside className="panel analysis">
           <div className="country-search">

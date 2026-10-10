@@ -1,3 +1,5 @@
+> Historical report. Database persistence and saved-run history have since been removed. See README.md and SHIPPING.md for the current setup.
+
 # WorldSim repository review
 
 Reviewed 2026-10-01 at commit `6ede638`. This is a whole-repository review, not a review against an originating issue or a branch diff. No application fixes were applied.

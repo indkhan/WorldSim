@@ -70,12 +70,6 @@ summary{color:var(--muted);font-size:12px}
 .playback{display:flex;gap:8px;margin-top:12px}
 .playback button{padding:6px 12px;font-size:12px}
 .ticks{font-size:10px;margin-top:16px}
-.run-library{margin-top:24px;border-top:1px solid var(--line);padding-top:16px}
-.save-status{color:var(--muted);font-size:11px;margin-bottom:16px;overflow-wrap:anywhere}
-.save-status button{display:block;margin-top:8px}
-.history{display:grid;gap:10px;margin-top:16px}
-.history label{margin:4px 0 0}
-.history button{justify-self:start;font-size:12px}
 .country-search label:first-child{margin-top:0}
 .country-search label{margin-top:14px}
 .country-search input,.country-search select{font-size:12px}

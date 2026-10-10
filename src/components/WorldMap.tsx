@@ -122,7 +122,9 @@ export default function WorldMap({ countries, flows, selectedCode, playing, week
   }, [ready, playing, rotating, reducedMotion]);
 
   const shapeCodes = useMemo(() => new Set(shapes.map(shapeCode)), [shapes]);
-  const markers = useMemo(() => countries.filter(c => !shapeCodes.has(c.code)), [countries, shapeCodes]);
+  // The globe attaches mesh objects; keep those out of simulation checkpoints.
+  const markers = useMemo(() => countries.filter(c => !shapeCodes.has(c.code))
+    .map(c => ({ ...c })), [countries, shapeCodes]);
   const arcs = useMemo(() => flows.flatMap(flow => {
     const from = by[flow.from], to = by[flow.to];
     if (!from || !to) return [];
@@ -132,7 +134,8 @@ export default function WorldMap({ countries, flows, selectedCode, playing, week
       label: `${from.name} → ${to.name} · ${flow.kind}` }];
   }), [by, flows, selectedCode]);
   const impacts = useMemo(() => countries.filter(c => c.pressure > .35)
-    .sort((a, b) => b.pressure - a.pressure).slice(0, 6), [countries]);
+    .sort((a, b) => b.pressure - a.pressure).slice(0, 6)
+    .map(c => ({ ...c })), [countries]);
   const state = (data: object) => by[shapeCode(data as CountryShape)];
   const active = (data: object) => shapeCode(data as CountryShape) === (hovered || selectedCode);
   const moving = playing && !reducedMotion;

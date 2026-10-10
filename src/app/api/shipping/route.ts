@@ -7,7 +7,6 @@ import {
   explainShipping,
   shippingModelSchema,
 } from "@/lib/providers/shipping";
-import { hasDatabase, prisma } from "@/lib/db/prisma";
 import { packResult } from "@/lib/simulation/transport-server";
 
 export const runtime = "nodejs";
@@ -68,32 +67,6 @@ export async function POST(req: Request) {
           }
         }
         if (req.signal.aborted) throw new Error("Cancelled");
-        result.saveStatus = "unsaved";
-        if (hasDatabase()) {
-          try {
-            const row = await prisma.simulation.create({
-              data: {
-                title: input.plan.title,
-                input: result.scenario,
-                status: "completed",
-                result: packResult(result),
-                modelVersions: {
-                  engine: result.audit!.engine,
-                  prompt: result.audit!.prompt,
-                  data: result.audit!.data,
-                  models: result.audit!.requests.map((r) => r.model),
-                },
-              },
-            });
-            result.id = row.id;
-            result.createdAt = row.createdAt.toISOString();
-            result.saveStatus = "saved";
-          } catch {
-            result.audit!.warnings.push(
-              "Saving unavailable; export this replay to keep it.",
-            );
-          }
-        }
         result.warnings = result.audit!.warnings;
         emit({ type: "result", result: packResult(result) });
       } catch {

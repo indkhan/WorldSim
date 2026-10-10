@@ -83,7 +83,6 @@ export type SimulationFrame = {
 };
 export type SimulationResult = {
   id?: string;
-  saveStatus?: "saved" | "unsaved";
   scenario: ScenarioInput;
   frames: SimulationFrame[];
   methodology: string;

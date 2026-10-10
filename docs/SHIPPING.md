@@ -1,6 +1,6 @@
 # Shipping lab — 2026-10-10
 
-The home page uses `shipping-1.0`; `/legacy` retains the original engine. No dependency or database migration was added. `shipping.ts` owns numerical state, `shipping-replay.ts` validates saved/imported states, and `providers/shipping.ts` owns structured AI calls.
+The home page uses `shipping-1.0`; `/legacy` retains the original engine. No database or saved-run history is used. `shipping.ts` owns numerical state, `shipping-replay.ts` validates imported states, and `providers/shipping.ts` owns structured AI calls.
 
 ## Data
 
@@ -41,7 +41,7 @@ Requests use strict schemas and `provider.require_parameters=true`. Byte limits 
 
 Existing gzip patches preserve nested shipping states. Frames retain pending policies, shipments and backlog. Controlled comparisons reuse recorded household/firm choices and change only subsequent public controls. They do not model adaptive AI reconsideration. Historical prefixes remain exactly equal; changing policy does not reset the original shock clock.
 
-Export/import works without a database, within 2 MB. Import validates versions, resource ranges, country/household identities and checkpoint order. Imported row identity is removed from the active run rather than trusting it on another server. Optional completed-run/branch saves use existing Prisma Simulation rows. Keys are never stored. Saved database history remains shared.
+Export/import works without a database, within 2 MB. Import validates versions, resource ranges, country/household identities and checkpoint order. Runs and comparisons live only in browser memory. Refresh resets the session; download a replay to keep it. Storage metadata from older exports is discarded. Keys are never included in replay files. No server or browser database is used.
 
 The 4–24 week route streams real completed checkpoints, then an optional explanation and packed final output. Partial execution is not durable and cannot resume. No queue, vector store, agents framework, private accounts or live data pipeline was added. No calibrated forecast, external causal identification or measured national behavior is claimed.
 

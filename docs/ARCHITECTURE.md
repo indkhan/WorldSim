@@ -1,63 +1,27 @@
 # Architecture
 
-The home page now uses the shipping lab described in [SHIPPING.md](SHIPPING.md). The original global engine, setup and earlier verification described below remain relevant to `/legacy`.
+The home page is the eight-country shipping lab; /legacy retains the original global engine. Both use the same simple Next.js deployment, without a database or saved-run library.
 
-## Design goals
+## Boundaries
 
-WorldSim keeps numerical state transitions explicit in TypeScript, treats model calls as bounded decision providers, keeps secrets server-side, remains useful without external AI, and is deployable as a single Next.js repository on Vercel.
+1. React holds the current run, selected week, country, policy comparison and visitor key in tab memory.
+2. Validated Node API requests execute bounded simulations. The shipping route streams completed frames and the packed final result.
+3. Pure TypeScript engines own numerical state. Optional OpenRouter calls supply validated bounded actions and explanations.
+4. The browser computes shipping policy branches and legacy continuations from the current checkpoint, without a persistence endpoint.
+5. Shipping JSON download/upload is the only way to keep a run across sessions. Import validates versions, identities, resource ranges and checkpoint ordering, within 2 MB.
 
-## State hierarchy
+Refresh resets the session. There is no IndexedDB, localStorage, PostgreSQL, Prisma, Supabase, queue or resumable background job. The server retains no run between requests. Legacy branch baseline comparisons keep one temporary parent checkpoint in memory to preserve the same historical prefix.
 
-`Scenario → World → Country → Cohort → Decision → Weighted country state → International propagation → Next tick`
+## AI boundary
 
-A country is not a single persona. `initializeWorld` generates weighted synthetic agents and compresses identical attribute combinations into cohorts. Cohorts vary by actor kind, income band, urban/rural status and sector. Each carries represented population weight, resilience, exposure, pressure, action and decision provenance.
+Shipping reviews all forty actors in one strict structured batch at planned review weeks, using Sonnet 5.5 or GPT-6.1 Sol. Actor identities, allowed actions and observed evidence weeks must validate. Invalid or unavailable batches use rules; intermediate weeks retain recorded choices. Costs, resource feasibility and numerical transitions stay outside the model. See SHIPPING.md for exact controls and limits.
 
-## Simulation loop
+The legacy provider runner queries representative cohorts using Jev. Decisions and narration share its request/time budget. Narration in both engines explains recorded outputs and cannot mutate them.
 
-1. Initialize every country and cohort from the seed.
-2. Construct international links.
-3. For each week, optionally query Jev through OpenRouter for representative cohorts in the highest-pressure countries.
-4. Apply the bounded decisions to the state transition.
-5. Compute event exposure, inbound international pressure, adaptation and prior-action mitigation.
-6. Aggregate cohort pressure by represented population.
-7. Store an immutable frame for playback/replay.
-8. Optionally ask OpenRouter to narrate the final recorded result.
+## Replay transport
 
-The provider-aware loop lives in `provider-runner.ts`; the pure deterministic engine remains independently testable.
+API responses use worldsim-v2: static initial metadata and lossless gzip weekly patches. Browser DecompressionStream and server node:zlib restore exact frame values. Numerical precision is retained. Shipping exports contain complete frames for portable offline replay.
 
-## OpenRouter decision boundary
+## Security and execution
 
-OpenRouter's `~typesafe/jev-latest` decision model receives a textual state plus a fixed option set for the relevant actor type. It does not calculate economic arithmetic. Returned choices are mapped to bounded action-effect coefficients. Provider errors fall back to deterministic rules and are surfaced in `warnings` rather than corrupting the run.
-
-`DECISION_MAX_COUNTRIES` limits provider fan-out. Within each selected country, the runner queries one high-weight representative cohort per actor type, serially. All decisions and narration share a total request budget (24 by default, at most 60) and deadline (60 seconds by default, at most 120). Every request including validation/narration times out after at most five seconds, including response body parsing. There are no paid retries; failures use deterministic fallback. Fatal credential/billing failures stop later calls. This gives demographic variation without turning every synthetic agent into a network request.
-
-## OpenRouter boundary
-
-The same OpenRouter key also powers optional post-processing narration. It receives scenario metadata, methodology and final computed state. A narration failure does not fail the simulation. The system prompt explicitly prohibits presenting simulation frequencies as verified probabilities.
-
-## Persistence
-
-`Simulation` stores input, output and model versions. `Checkpoint` is reserved for durable incremental execution. Branches record `parentSimulationId` in input and preserve parent frames through the branch week before applying changed structured numerical inputs.
-
-## Vercel execution
-
-The current route uses the Node runtime and `maxDuration=300`. This is appropriate for a personal/pet deployment with bounded provider fan-out. For larger public workloads:
-
-- create the Simulation row with status `queued`;
-- publish one or more week/provider batches to Vercel Queues or Workflow;
-- write each completed week to `Checkpoint`;
-- make consumers idempotent because queue delivery is at-least-once;
-- assemble completed frames into `Simulation.result`;
-- stream/poll progress from the UI.
-
-This avoids depending on in-memory process lifetime and allows retries without rerunning the whole world.
-
-## Security
-
-Visitors supply their own OpenRouter keys; there is no server-key fallback or deployment password. Keys live in tab React state and travel to server routes over HTTPS; they are never persisted or logged. Zod validates simulation input and provider choices/confidence. Provider calls have timeouts and budgets. Vercel headers disable unnecessary browser capabilities and add basic hardening. All visitors share saved runs when persistence is configured. Cross-origin mutations are rejected. Separate private user histories and public scaling require real identity, per-owner database queries and distributed quotas/rate limits.
-
-## Compact timeline contract
-
-API and new stored results use `worldsim-v2`: a complete initial metadata frame plus base64 gzip weekly patches. Unchanged country/cohort fields and links are omitted; browser DecompressionStream and server node:zlib restore exact values. Numeric precision is retained. Legacy full-frame saved results are compacted on read. The in-memory engine/inspector contract stays unchanged.
-
-Replay merges database identity and timestamps. Optional save failures return results with `saveStatus: unsaved` and a warning; list/detail/checkpoint infrastructure failures return 503. Branch requests explicitly select deterministic continuation, preserve historical provider decisions, validate the branch frame and require an end horizon after it.
+Visitor keys stay in tab memory and travel to the server over HTTPS. They are excluded from replay exports and never logged or persisted. Zod validates requests and provider output; cross-origin mutations are rejected. Provider calls have request and time limits and no paid retries. The app deploys as a single Next.js service; no external storage service is configured.

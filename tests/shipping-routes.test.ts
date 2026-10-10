@@ -1,9 +1,8 @@
 import { expect, it, vi, afterEach } from "vitest";
 import { defaultShippingPlan } from "@/lib/simulation/shipping";
-vi.mock("@/lib/db/prisma", () => ({ hasDatabase: () => false, prisma: {} }));
 import { POST } from "@/app/api/shipping/route";
 afterEach(() => vi.unstubAllGlobals());
-it("streams real checkpoints and an unsaved, replayable result without a key", async () => {
+it("streams real checkpoints and a replayable result without a key", async () => {
   const fetch = vi.fn();
   vi.stubGlobal("fetch", fetch);
   const response = await POST(
@@ -23,7 +22,8 @@ it("streams real checkpoints and an unsaved, replayable result without a key", a
   expect(
     records.filter((r) => r.type === "frame").map((r) => r.frame.week),
   ).toEqual(Array.from({ length: 17 }, (_, i) => i));
-  expect(records.at(-1).result.saveStatus).toBe("unsaved");
+  expect(records.at(-1).result).not.toHaveProperty("saveStatus");
+  expect(records.at(-1).result).not.toHaveProperty("id");
   expect(records.at(-1).result.audit.engine).toBe("shipping-1.0");
   expect(fetch).not.toHaveBeenCalled();
 });

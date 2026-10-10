@@ -126,7 +126,7 @@ export function ScenarioControls(p: Props) {
       <button
         className="secondary"
         disabled={p.loading || !p.canBranch}
-        title="Requires a saved run and a horizon after the selected week. Continuation uses deterministic rules."
+        title="Requires a current run and a horizon after the selected week. Continuation uses deterministic rules."
         onClick={p.onBranch}
       >
         <GitBranch size={15} />

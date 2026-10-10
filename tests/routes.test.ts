@@ -1,78 +1,33 @@
 import { afterEach, expect, it, vi } from "vitest";
-vi.mock("@/lib/db/prisma", () => ({
-  hasDatabase: () => true,
-  prisma: {
-    simulation: { create: vi.fn(), findUnique: vi.fn(), findMany: vi.fn() },
-  },
-}));
-import { prisma } from "@/lib/db/prisma";
-import { POST, GET as list } from "@/app/api/simulations/route";
-import { GET } from "@/app/api/simulations/[id]/route";
+import { POST } from "@/app/api/simulations/route";
 import { unpackResult } from "@/lib/simulation/transport";
-afterEach(() => vi.resetAllMocks());
-it("restores row identity on replay", async () => {
-  vi.mocked(prisma.simulation.findUnique).mockResolvedValue({
-    id: "saved",
-    createdAt: new Date("2026-01-01"),
-    result: { format: "worldsim-v2", metadata: {}, timeline: "" },
-  } as never);
-  const r = await GET(new Request("http://localhost"), {
-    params: Promise.resolve({ id: "saved" }),
-  });
-  expect(await r.json()).toMatchObject({
-    id: "saved",
-    createdAt: "2026-01-01T00:00:00.000Z",
-  });
-});
-it("keeps computed results when optional saving fails", async () => {
-  vi.mocked(prisma.simulation.create).mockRejectedValue(
-    new Error("connection credentials"),
-  );
-  const r = await POST(
-    new Request("http://localhost", {
-      method: "POST",
-      headers: { "x-provider-mode": "deterministic" },
-      body: JSON.stringify({
-        title: "Test",
-        description: "Synthetic shock",
-        family: "energy",
-        severity: 70,
-        durationWeeks: 1,
-        seed: 42,
-      }),
+
+afterEach(() => vi.unstubAllGlobals());
+
+it("returns repeatable complete runs without persistence or external calls", async () => {
+  const fetch = vi.fn();
+  vi.stubGlobal("fetch", fetch);
+  const run = () => POST(new Request("http://localhost/api/simulations", {
+    method: "POST",
+    headers: { "x-provider-mode": "deterministic" },
+    body: JSON.stringify({
+      title: "Test", description: "Synthetic shock", family: "energy",
+      severity: 70, durationWeeks: 1, seed: 42,
     }),
-  );
-  expect(r.status).toBe(200);
-  const result = await unpackResult(await r.json());
+  }));
+  const response = await run();
+  expect(response.status).toBe(200);
+  const result = await unpackResult(await response.json());
   expect(result.frames).toHaveLength(2);
-  expect(result).toMatchObject({ saveStatus: "unsaved" });
-  expect(JSON.stringify(result)).not.toContain("connection credentials");
+  expect(result).not.toHaveProperty("saveStatus");
+  expect(result).not.toHaveProperty("id");
+  expect((await unpackResult(await (await run()).json())).frames).toEqual(result.frames);
+  expect(fetch).not.toHaveBeenCalled();
 });
-it("returns a controlled infrastructure error on history failure", async () => {
-  vi.mocked(prisma.simulation.findMany).mockRejectedValue(new Error("secret"));
-  const r = await list(new Request("http://localhost"));
-  expect(r.status).toBe(503);
-  expect(await r.text()).not.toContain("secret");
-});
-it("compacts legacy stored replay responses", async () => {
-  const { runSimulation } = await import("@/lib/simulation/engine");
-  const result = runSimulation({
-    title: "Old run",
-    description: "Synthetic shock",
-    family: "energy",
-    severity: 70,
-    durationWeeks: 12,
-    seed: 42,
-  });
-  vi.mocked(prisma.simulation.findUnique).mockResolvedValue({
-    id: "legacy",
-    createdAt: new Date(),
-    result,
-  } as never);
-  const response = await GET(new Request("http://localhost"), {
-    params: Promise.resolve({ id: "legacy" }),
-  });
-  const body = await response.json();
-  expect(body.format).toBe("worldsim-v2");
-  expect((await unpackResult(body)).frames).toEqual(result.frames);
+
+it("rejects invalid scenarios before execution", async () => {
+  const response = await POST(new Request("http://localhost/api/simulations", {
+    method: "POST", body: JSON.stringify({ durationWeeks: 105 }),
+  }));
+  expect(response.status).toBe(400);
 });

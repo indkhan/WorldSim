@@ -69,7 +69,7 @@ export default function Methodology() {
       </p>
       <h2>Replay and policy comparison</h2>
       <p>
-        Loading a saved or exported replay makes no model calls. JSON import
+        Loading an exported replay makes no model calls. JSON import
         validates engine/prompt/data versions, resource ranges and checkpoint
         identities, within 2 MB. A policy branch preserves its complete
         checkpoint and historical prefix. It fixes recorded household/firm
@@ -78,10 +78,11 @@ export default function Methodology() {
         behavior. Existing funded commitments survive a branch.
       </p>
       <p>
-        The bounded 4–24 week runner streams real checkpoints. PostgreSQL saves
-        completed runs and branches; export works without it. Interrupted
-        partial execution cannot resume. Saved runs remain shared with visitors;
-        API keys are never saved with a replay.
+        The bounded 4–24 week runner streams real checkpoints. Runs and policy
+        comparisons live in browser memory, with no database or saved history.
+        Download a JSON replay to keep or share a run. Refreshing resets the
+        session, and interrupted partial execution cannot resume. API keys are
+        never included in a replay.
       </p>
       <h2>Original global simulator</h2>
       <p>The sections below describe the separate legacy engine at /legacy.</p>

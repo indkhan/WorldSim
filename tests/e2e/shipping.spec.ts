@@ -2,6 +2,11 @@ import { test, expect } from "@playwright/test";
 test("demo opens without a key and supports country history and a controlled policy comparison", async ({
   page,
 }) => {
+  const persistenceRequests: string[] = [];
+  page.on("request", request => {
+    if (request.url().includes("/api/simulations"))
+      persistenceRequests.push(request.url());
+  });
   await page.goto("/");
   await expect(
     page.getByRole("heading", { name: "Follow the disruption, week by week." }),
@@ -22,7 +27,9 @@ test("demo opens without a key and supports country history and a controlled pol
   await expect(page.getByText(/same checkpoint/i).first()).toBeVisible();
   await expect(page.getByLabel("Country output history")).toBeVisible();
   await page.getByRole("button", { name: "Run scenario", exact: true }).click();
-  await expect(page.getByRole("status")).toContainText("Completed 16 weeks");
+  await expect(page.getByRole("status")).toContainText("Completed 16 weeks", {
+    timeout: 30000,
+  });
   const downloadEvent = page.waitForEvent("download");
   await page.getByRole("button", { name: "Export replay" }).click();
   const download = await downloadEvent;
@@ -31,6 +38,11 @@ test("demo opens without a key and supports country history and a controlled pol
     .setInputFiles((await download.path())!);
   await expect(page.getByRole("status")).toContainText("Replay file loaded");
   await expect(page.getByLabel("Selected week")).toHaveValue("0");
+  await expect(page.getByText(/Saved replays/)).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Save comparison" })).toHaveCount(0);
+  await page.reload();
+  await expect(page.getByRole("status")).toContainText("Demo ready");
+  expect(persistenceRequests).toEqual([]);
 });
 test("mobile demo stays within the viewport and exposes assumptions", async ({
   page,

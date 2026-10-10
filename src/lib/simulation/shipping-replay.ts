@@ -76,7 +76,6 @@ const country = z.object({
 });
 const replaySchema = z.object({
   id: z.string().max(200).optional(),
-  saveStatus: z.enum(["saved", "unsaved"]).optional(),
   createdAt: z.string().max(100).optional(),
   scenario: z.object({
     title: z.string().max(120),

@@ -3,7 +3,6 @@ import { NextResponse } from "next/server";
 import { createProviderBudget } from "@/lib/providers/execution";
 import { scenarioSchema } from "@/lib/simulation/schema";
 import { runProviderSimulation } from "@/lib/simulation/provider-runner";
-import { hasDatabase, prisma } from "@/lib/db/prisma";
 import { narrate } from "@/lib/providers/openrouter";
 import { packResult } from "@/lib/simulation/transport-server";
 export const runtime = "nodejs";
@@ -52,54 +51,11 @@ export async function POST(req: Request) {
           "Narration unavailable; numerical results remain usable.",
         ];
       }
-    result.saveStatus = "unsaved";
-    if (hasDatabase())
-      try {
-        const row = await prisma.simulation.create({
-          data: {
-            title: input.title,
-            input,
-            status: "completed",
-            result: packResult(result),
-            modelVersions: { engine: "2.0" },
-          },
-        });
-        result.id = row.id;
-        result.createdAt = row.createdAt.toISOString();
-        result.saveStatus = "saved";
-      } catch {
-        result.warnings = [
-          ...(result.warnings || []),
-          "Saving unavailable; this result is unsaved.",
-        ];
-      }
     return NextResponse.json(packResult(result));
   } catch {
     return NextResponse.json(
       { error: "Simulation execution failed" },
       { status: 500 },
     );
-  }
-}
-export async function GET(req: Request) {
-  const denied = privateAccess(req);
-  if (denied) return denied;
-  if (!hasDatabase()) return NextResponse.json([]);
-  try {
-    return NextResponse.json(
-      await prisma.simulation.findMany({
-        take: 20,
-        orderBy: { createdAt: "desc" },
-        select: {
-          id: true,
-          title: true,
-          createdAt: true,
-          status: true,
-          input: true,
-        },
-      }),
-    );
-  } catch {
-    return NextResponse.json({ error: "History unavailable" }, { status: 503 });
   }
 }

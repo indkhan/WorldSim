@@ -7,6 +7,7 @@ WorldSim is a Vercel-first, interactive global scenario laboratory. Introduce an
 ## Product capabilities
 
 - Full-screen 3D globe with pressure points and animated international propagation links.
+- Natural-color Earth with terrain, ocean highlights, atmosphere and a cloud layer. Country selection focuses the camera; playback animates pressure waves and propagation links. Rotation can be paused, and reduced-motion preferences are respected.
 - Week-by-week simulation playback with global household, production and aggregate pressure metrics.
 - Country drill-down into **different groups within the same country**: household/business/government actor type, low/middle/high income, urban/rural location and economic sector.
 - Population weighting: approximately 100 synthetic agents per 1B residents, capped at 100 and with a minimum of 3 for small countries. Agents are compressed into inspectable cohorts without losing their represented population weight.
@@ -19,6 +20,8 @@ WorldSim is a Vercel-first, interactive global scenario laboratory. Introduce an
 - Timeline branching from an actual historical frame; pre-branch state is preserved.
 - Seeded deterministic fallback mode for reproducible tests and zero-cost local development.
 - Vercel Node runtime, server-only secrets, long-duration route support, CI, schema validation and provider timeout/budget handling.
+
+Earth imagery is static, and overlays represent the selected simulation week rather than live conditions. Cloud and ocean specular textures are vendored from the [Three.js r186 example assets](https://github.com/mrdoob/three.js/tree/r186/examples/textures/planets); the cloud layer is decorative, not live weather.
 
 ## Quick start
 

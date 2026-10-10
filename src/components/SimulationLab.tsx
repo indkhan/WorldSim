@@ -282,6 +282,9 @@ export default function SimulationLab({
           <WorldMap
             countries={frame.countries}
             flows={frame.flows}
+            selectedCode={code}
+            playing={playing}
+            week={week}
             onSelect={select}
           />
           <div className="timeline panel">

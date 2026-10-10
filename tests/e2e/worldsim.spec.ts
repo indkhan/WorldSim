@@ -1,4 +1,40 @@
 import { expect, test } from "@playwright/test";
+test("renders Earth, supports rotation, and focuses the inspected country", async ({ page }, testInfo) => {
+  testInfo.setTimeout(120000);
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/");
+  await page.getByRole("button", { name: "Use deterministic mode" }).click();
+  const earth = page.getByRole("region", { name: "Interactive Earth" });
+  await expect(earth).toHaveAttribute("data-ready", "true", { timeout: 30000 });
+  const rotate = page.getByRole("button", { name: "Rotate Earth", exact: true });
+  await expect(rotate).toHaveAttribute("aria-pressed", "false");
+  const stillEarth = await earth.locator("canvas").screenshot();
+  await rotate.click();
+  await expect(page.getByRole("button", { name: "Pause rotation" })).toHaveAttribute("aria-pressed", "true");
+  expect(stillEarth.equals(await earth.locator("canvas").screenshot())).toBe(false);
+  await page.getByRole("button", { name: "Pause rotation" }).click();
+  await page.getByLabel("Inspect country").selectOption({ label: "France" });
+  await expect(earth).toHaveAttribute("data-country", "FRA");
+  const shot = await earth.screenshot({ path: testInfo.outputPath("earth-desktop.png") });
+  expect(shot.length).toBeGreaterThan(10000);
+  await testInfo.attach("earth-desktop", { body: shot, contentType: "image/png" });
+  await page.getByRole("button", { name: "Reset view" }).click();
+  await page.getByLabel("World event").fill("A major energy disruption affects international supply.");
+  await page.getByLabel("Horizon in weeks").fill("4");
+  await page.getByRole("button", { name: "Run world" }).click();
+  await expect(page.getByRole("button", { name: "Run world" })).toBeEnabled({ timeout: 30000 });
+  await page.getByRole("button", { name: "Pause", exact: true }).click();
+  await page.getByRole("button", { name: "Restart", exact: true }).click();
+  const before = await earth.screenshot();
+  await page.getByLabel("Simulation week").fill("4");
+  await expect(earth).toHaveAttribute("data-week", "4");
+  const after = await earth.screenshot({ path: testInfo.outputPath("earth-simulation.png") });
+  expect(before.equals(after)).toBe(false);
+  await page.setViewportSize({ width: 375, height: 812 });
+  await expect.poll(() => earth.locator("canvas").evaluate((canvas) => Math.round(canvas.getBoundingClientRect().height))).toBe(420);
+  await testInfo.attach("earth-mobile", { body: await earth.screenshot({ path: testInfo.outputPath("earth-mobile.png") }), contentType: "image/png" });
+});
 test("keeps optional controls tucked away and fits narrow screens", async ({
   page,
 }) => {
@@ -211,7 +247,7 @@ test("loads saved history, metadata and parent ancestry", async ({
   await expect(page.getByLabel("Saved runs")).toContainText("Saved example");
   await page.getByLabel("Saved runs").selectOption("child");
   await expect(page.getByText("Saved example", { exact: true })).toBeVisible();
-  await expect(page.getByRole("status")).toContainText("Saved 2026-01-01");
+  await expect(page.locator(".run-library").getByRole("status")).toContainText("Saved 2026-01-01");
   await expect(
     page.getByRole("button", { name: "Replay parent parent (week 2)" }),
   ).toBeVisible();

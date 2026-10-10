@@ -1,4 +1,5 @@
 import"./globals.css";
 import"./provider-gate.css";
+import "./shipping.css";
 export const metadata={title:"WorldSim — Scenario Laboratory",description:"Explore how hypothetical shocks propagate through a synthetic world."};
 export default function RootLayout({children}:{children:React.ReactNode}){return <html lang="en"><body>{children}</body></html>}

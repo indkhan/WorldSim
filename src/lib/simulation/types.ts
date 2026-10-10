@@ -20,6 +20,7 @@ export type ScenarioInput = {
   assumptions?: string[];
   parentSimulationId?: string;
   branchWeek?: number;
+  shipping?: import("./shipping").ShippingPlan;
 };
 export type CohortState = {
   id: string;
@@ -63,6 +64,7 @@ export type CountryState = {
   exports: number;
   energyExposure: number;
   adaptiveCapacity: number;
+  shipping?: import("./shipping").ShippingCountry;
 };
 export type Flow = {
   from: string;
@@ -77,6 +79,7 @@ export type SimulationFrame = {
   globalPressure: number;
   globalHouseholdStrain: number;
   globalProductionPressure: number;
+  shipping?: import("./shipping").ShippingCheckpoint;
 };
 export type SimulationResult = {
   id?: string;
@@ -89,6 +92,7 @@ export type SimulationResult = {
   providerPolicy?: "deterministic" | "openrouter";
   createdAt?: string;
   warnings?: string[];
+  audit?: import("./shipping").ShippingAudit;
 };
 export type DecisionOverride = {
   countryCode: string;

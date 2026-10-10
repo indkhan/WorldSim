@@ -1,5 +1,7 @@
 # Implementation and verification (2026-10-01)
 
+The home page now uses the shipping lab described in [SHIPPING.md](SHIPPING.md). The original global engine, setup and earlier verification described below remain relevant to `/legacy`.
+
 Starting point: docs/REVIEW.md at 6ede638. Findings were checked against current code before changes. The pre-existing untracked review was preserved. No AGENTS.md instructions were found in the repository or its ancestor directories. No push, deployment or paid provider call was made.
 
 ## Changes

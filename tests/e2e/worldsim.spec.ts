@@ -3,7 +3,7 @@ test("renders Earth, supports rotation, and focuses the inspected country", asyn
   testInfo.setTimeout(120000);
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/");
+  await page.goto("/legacy");
   await page.getByRole("button", { name: "Use deterministic mode" }).click();
   const earth = page.getByRole("region", { name: "Interactive Earth" });
   await expect(earth).toHaveAttribute("data-ready", "true", { timeout: 30000 });
@@ -39,7 +39,7 @@ test("keeps optional controls tucked away and fits narrow screens", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 375, height: 812 });
-  await page.goto("/");
+  await page.goto("/legacy");
   await page.getByRole("button", { name: "Use deterministic mode" }).click();
   await expect(page.getByLabel("Shock decay scale (weeks)")).toBeHidden();
   await page.getByText("Advanced settings", { exact: true }).click();
@@ -54,7 +54,7 @@ test("keeps optional controls tucked away and fits narrow screens", async ({
   ).toBe(true);
 });
 test("runs a blank scenario without API keys", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/legacy");
   await expect(
     page.getByRole("dialog", { name: "Connect OpenRouter" }),
   ).toBeVisible();
@@ -77,7 +77,7 @@ test("runs a blank scenario without API keys", async ({ page }) => {
 test("keeps result-only controls unavailable before a scenario runs", async ({
   page,
 }) => {
-  await page.goto("/");
+  await page.goto("/legacy");
   await page.getByRole("button", { name: "Use deterministic mode" }).click();
   await expect(
     page.getByRole("button", { name: "Compare to baseline" }),
@@ -91,7 +91,7 @@ test("keeps result-only controls unavailable before a scenario runs", async ({
 test("provides a heading and skip link for keyboard navigation", async ({
   page,
 }) => {
-  await page.goto("/");
+  await page.goto("/legacy");
   await expect(page.getByRole("heading", { name: "WorldSim" })).toBeVisible();
   const skip = page.getByRole("link", { name: "Skip to simulator" });
   await expect(skip).toBeVisible();
@@ -102,7 +102,7 @@ test("provides a heading and skip link for keyboard navigation", async ({
 });
 test("explains an unreachable simulation server", async ({ page }) => {
   await page.route("**/api/simulations", (route) => route.abort());
-  await page.goto("/");
+  await page.goto("/legacy");
   await page.getByRole("button", { name: "Use deterministic mode" }).click();
   await page
     .getByLabel("World event")
@@ -122,7 +122,7 @@ test("validates provider keys before entering the lab", async ({ page }) => {
       body: '{"ok":true}',
     });
   });
-  await page.goto("/");
+  await page.goto("/legacy");
   await page.getByLabel("OpenRouter API key").fill("openrouter-test-key");
   await page.getByRole("button", { name: "Connect OpenRouter" }).click();
   await expect.poll(() => validated).toBe(true);
@@ -133,7 +133,7 @@ test("validates provider keys before entering the lab", async ({ page }) => {
 test("contains keyboard focus and restores it on dismissal", async ({
   page,
 }) => {
-  await page.goto("/");
+  await page.goto("/legacy");
   const dialog = page.getByRole("dialog", { name: "Connect OpenRouter" });
   await expect(page.getByLabel("OpenRouter API key")).toBeFocused();
   for (let i = 0; i < 12; i++) {
@@ -149,7 +149,7 @@ test("contains keyboard focus and restores it on dismissal", async ({
 test("baseline uses completed settings and clears after a new run", async ({
   page,
 }) => {
-  await page.goto("/");
+  await page.goto("/legacy");
   await page.getByRole("button", { name: "Use deterministic mode" }).click();
   await page
     .getByLabel("World event")
@@ -175,7 +175,7 @@ test("baseline uses completed settings and clears after a new run", async ({
   await expect(page.getByText("Create a baseline")).toBeVisible();
 });
 test("searches countries and controls playback", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/legacy");
   await page.getByRole("button", { name: "Use deterministic mode" }).click();
   await page
     .getByLabel("World event")
@@ -199,7 +199,7 @@ test("searches countries and controls playback", async ({ page }) => {
 });
 test("keeps Methodology visible on mobile", async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 812 });
-  await page.goto("/");
+  await page.goto("/legacy");
   await page.getByRole("button", { name: "Use deterministic mode" }).click();
   await expect(page.getByRole("link", { name: "Methodology" })).toBeVisible();
 });
@@ -240,7 +240,7 @@ test("loads saved history, metadata and parent ancestry", async ({
   await page.route("**/api/simulations/child", (route) =>
     route.fulfill({ json: packed }),
   );
-  await page.goto("/");
+  await page.goto("/legacy");
   await page.getByRole("button", { name: "Use deterministic mode" }).click();
   await page.locator(".run-library > summary").click();
   await page.getByRole("button", { name: "Refresh saved history" }).click();
@@ -300,7 +300,7 @@ test("clears a previous baseline when branching a saved run", async ({
       },
     }),
   );
-  await page.goto("/");
+  await page.goto("/legacy");
   await page.getByRole("button", { name: "Use deterministic mode" }).click();
   await page.locator(".run-library > summary").click();
   await page.getByRole("button", { name: "Refresh saved history" }).click();

@@ -22,6 +22,7 @@ export default function SimulationLab({
         id: string;
         title: string;
         createdAt: string;
+        input?: ScenarioInput;
       }[]
     >([]),
     [shockDuration, setShockDuration] = useState(12),
@@ -196,6 +197,7 @@ export default function SimulationLab({
       });
       if (!r.ok) throw new Error((await r.json()).error);
       const saved = await unpackResult(await r.json());
+      if (saved.scenario.shipping) throw new Error("Open shipping replays in the new lab at the home page.");
       setResult(saved);
       setBaseline(null);
       setWeek(0);
@@ -359,7 +361,8 @@ export default function SimulationLab({
                       signal: pending.current?.signal,
                     });
                     if (!r.ok) throw new Error((await r.json()).error);
-                    setHistory(await r.json());
+                    const rows = await r.json();
+                    setHistory(rows.filter((row: { input?: ScenarioInput }) => !row.input?.shipping));
                   })
                 }
               >

@@ -1,5 +1,7 @@
 # Operations
 
+The home page now uses the shipping lab described in [SHIPPING.md](SHIPPING.md). The original global engine, setup and earlier verification described below remain relevant to `/legacy`.
+
 ## Cost controls
 
 Decision fan-out is controlled by `DECISION_MAX_COUNTRIES`. The runner queries only representative cohorts in the highest-pressure countries through OpenRouter. Default to 6 (maximum 12). PROVIDER_MAX_CALLS (default 24, maximum 60) and PROVIDER_MAX_SECONDS (default 60, maximum 120) apply across all weeks and narration. Calls are serial, with five-second timeouts and no paid retries. Credential/billing rejection stops all later calls. Request cancellation prevents later calls when the server observes the abort. Keep deterministic mode available for development and demos.

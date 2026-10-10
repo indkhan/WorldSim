@@ -1,5 +1,7 @@
 # Data and provenance
 
+The home page now uses the shipping lab described in [SHIPPING.md](SHIPPING.md). The original global engine, setup and earlier verification described below remain relevant to `/legacy`.
+
 ## Bundled country snapshot
 
 `src/data/countries.json` supplies country/territory name, code, population, region/subregion and representative latitude/longitude. It is bundled so the project works offline after dependencies are installed.

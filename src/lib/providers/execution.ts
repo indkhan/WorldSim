@@ -21,7 +21,7 @@ export function providerSettings() {
       countries: process.env.DECISION_MAX_COUNTRIES ?? "6",
       calls: process.env.PROVIDER_MAX_CALLS ?? "24",
       seconds: process.env.PROVIDER_MAX_SECONDS ?? "60",
-      model: process.env.OPENROUTER_MODEL ?? "openai/gpt-oss-20b",
+      model: process.env.OPENROUTER_MODEL ?? "anthropic/claude-sonnet-5.5",
       appUrl: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
     });
 }
@@ -48,6 +48,7 @@ export async function providerJson(
   url: string,
   init: RequestInit,
   budget?: ProviderBudget,
+  timeoutMs = 5000,
 ) {
   if (
     budget &&
@@ -59,7 +60,7 @@ export async function providerJson(
     throw new ProviderError("Provider budget exhausted or cancelled");
   if (budget) budget.calls++;
   const controller = new AbortController(),
-    ms = Math.min(5000, budget ? budget.deadline - Date.now() : 5000);
+    ms = Math.min(timeoutMs, budget ? budget.deadline - Date.now() : timeoutMs);
   let timer: ReturnType<typeof setTimeout> | undefined;
   const abort = () => controller.abort();
   budget?.signal?.addEventListener("abort", abort, { once: true });

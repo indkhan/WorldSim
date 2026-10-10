@@ -8,6 +8,7 @@ import { POST } from "@/app/api/simulations/[id]/branch/route";
 import { runSimulation } from "@/lib/simulation/engine";
 import { packResult } from "@/lib/simulation/transport-server";
 import { unpackResult } from "@/lib/simulation/transport";
+import { runShipping, defaultShippingPlan } from "@/lib/simulation/shipping";
 const s = {
   title: "Test",
   description: "Synthetic shock",
@@ -18,6 +19,33 @@ const s = {
 };
 const parent = runSimulation(s);
 afterEach(() => vi.resetAllMocks());
+it("persists a controlled shipping branch with its complete checkpoint and parent provenance", async () => {
+  const shipping = runShipping(defaultShippingPlan);
+  vi.mocked(prisma.simulation.findUnique).mockResolvedValue({
+    id: "parent",
+    title: "Shipping",
+    input: shipping.scenario,
+    result: packResult(shipping),
+  } as never);
+  vi.mocked(prisma.simulation.create).mockResolvedValue({
+    id: "child",
+    createdAt: new Date("2026-10-10T10:00:00Z"),
+  } as never);
+  const response = await POST(
+    new Request("http://localhost", {
+      method: "POST",
+      body: JSON.stringify({ policy: "reroute", branchWeek: 3 }),
+    }),
+    { params: Promise.resolve({ id: "parent" }) },
+  );
+  expect(response.status).toBe(200);
+  const child = await unpackResult(await response.json());
+  expect(child.saveStatus).toBe("saved");
+  expect(child.scenario.parentSimulationId).toBe("parent");
+  expect(child.scenario.branchWeek).toBe(3);
+  expect(child.frames.slice(0, 4)).toEqual(shipping.frames.slice(0, 4));
+  expect(child.audit!.comparison).toContain("only public policy changes");
+});
 it.each([
   { branchWeek: 9, durationWeeks: 12 },
   { branchWeek: 6, durationWeeks: 4 },

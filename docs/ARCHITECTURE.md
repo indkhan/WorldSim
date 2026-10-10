@@ -1,5 +1,7 @@
 # Architecture
 
+The home page now uses the shipping lab described in [SHIPPING.md](SHIPPING.md). The original global engine, setup and earlier verification described below remain relevant to `/legacy`.
+
 ## Design goals
 
 WorldSim keeps numerical state transitions explicit in TypeScript, treats model calls as bounded decision providers, keeps secrets server-side, remains useful without external AI, and is deployable as a single Next.js repository on Vercel.

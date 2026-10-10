@@ -1,5 +1,7 @@
 # Simulation methodology
 
+The home page now uses the shipping lab described in [SHIPPING.md](SHIPPING.md). The original global engine, setup and earlier verification described below remain relevant to `/legacy`.
+
 ## Representation
 
 WorldSim scales country population into a small weighted synthetic population. `agentCount(population)` targets 100 agents for one billion residents, caps at 100 and keeps at least three agents for small countries. Agents with the same actor/income/urbanity/sector combination are compressed into cohorts. Every country reserves household, business and government representation. Their fixed aggregate shares are 80%, 15% and 5%, independent of sample size. `weight` allocates the country population across these synthetic actor channels; weights sum to country population. These are modeling weights, not measured actor demographics. All country aggregation uses this weight.

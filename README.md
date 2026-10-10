@@ -1,5 +1,13 @@
 # WorldSim
 
+The home page is now an **eight-country shipping disruption lab**: a key-free sixteen-week demo, country histories, queued orders, delayed deliveries, finite firm/public budgets and household savings. It uses actual UN Comtrade annual HS85 import value shares with explicit weekly assumptions. AI uses **Sonnet 5.5 by default**, or GPT‑6.1 Sol, reviewing all 40 actors at planned intervals. AI choices are validated; TypeScript owns numerical effects.
+
+Policy comparisons preserve the complete checkpoint and recorded household/firm actions. Replay export/import works without a database or model calls; PostgreSQL additionally saves runs and comparisons using the existing schema. Real completed weeks stream from the server. Imported files are validated and capped at 2 MB. See [shipping mechanics and limits](docs/SHIPPING.md).
+
+Shipping supports 4–24 weeks and at most six reviews plus one explanation. Reviews use the configured provider deadline; explanation has a separate 25-second cap. Provider routing enforces maximum token rates, and prompt/output sizes reserve under $1/run at those rates, excluding fees. Interpretation is separately triggered. Interrupted partial runs cannot resume. No dependencies or migration were added.
+
+## Original simulator — /legacy
+
 WorldSim is a Vercel-first, interactive global scenario laboratory. Introduce an event, simulate how heterogeneous household, business and government cohorts respond across 190+ countries/territories, watch effects propagate through international links, inspect a country down to demographic/sector cohorts, branch a timeline, and compare it with a no-shock baseline.
 
 > WorldSim is an exploratory simulator, **not a forecasting system**. Synthetic cohorts, proxy exposure variables and model decisions must not be interpreted as measured public opinion or verified probabilities.
@@ -34,7 +42,7 @@ npm run db:push
 npm run dev
 ```
 
-Open `http://localhost:3000`. The core simulator works without a database or AI key. Persistence/branching require PostgreSQL. Visitors supply their own OpenRouter key in the app for provider features, or continue in deterministic mode. No deployment password or server provider key is needed. Saved simulations are shared with all visitors. Use HTTPS in production.
+Open `http://localhost:3000`. The demo and local policy comparisons work without a database or AI key. Persisted history/branches require PostgreSQL. Visitors supply their own OpenRouter key for AI features. Saved database simulations are shared with all visitors. Use HTTPS in production.
 
 ## Environment variables
 
@@ -44,7 +52,7 @@ Open `http://localhost:3000`. The core simulator works without a database or AI 
 | `PROVIDER_MAX_CALLS` | no | Total requests per run, including narration; default 24, maximum 60 |
 | `PROVIDER_MAX_SECONDS` | no | Total provider time budget; default 60, maximum 120 seconds |
 | `DECISION_MAX_COUNTRIES` | no | Countries evaluated per week (1-12, default 6) |
-| `OPENROUTER_MODEL` | no | OpenRouter narration model slug |
+| `OPENROUTER_MODEL` | no | Legacy narration slug, default Sonnet 5.5; shipping selection is explicit in the UI |
 | `NEXT_PUBLIC_APP_URL` | recommended | Application URL used in OpenRouter attribution headers |
 
 Never commit `.env` or provider keys. All provider calls are made from server routes.

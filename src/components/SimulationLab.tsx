@@ -226,7 +226,6 @@ export default function SimulationLab({
           </span>
           <div>
             <h1>WorldSim</h1>
-            <small>GLOBAL DECISION SIMULATOR · V2</small>
           </div>
         </div>
         <nav>
@@ -264,54 +263,6 @@ export default function SimulationLab({
           onBranch={branch}
         />
         <section className="center">
-          <div className="save-status" role="status">
-            {hasRun
-              ? result.saveStatus === "saved"
-                ? `Saved ${result.createdAt || ""}`
-                : "Unsaved - replay and branching require a successful save"
-              : "Synthetic inputs - exploratory model scores"}
-            {result.scenario.parentSimulationId && (
-              <button
-                disabled={loading}
-                onClick={() => load(result.scenario.parentSimulationId!)}
-              >
-                Replay parent {result.scenario.parentSimulationId} (week{" "}
-                {result.scenario.branchWeek})
-              </button>
-            )}
-          </div>
-          <div className="history">
-            <button
-              disabled={loading}
-              onClick={() =>
-                execute(async () => {
-                  const r = await fetch("/api/simulations", {
-                    signal: pending.current?.signal,
-                  });
-                  if (!r.ok) throw new Error((await r.json()).error);
-                  setHistory(await r.json());
-                })
-              }
-            >
-              Refresh saved history
-            </button>
-            <label htmlFor="saved-run">Saved runs</label>
-            <select
-              id="saved-run"
-              value=""
-              disabled={loading}
-              onChange={(e) => {
-                if (e.target.value) load(e.target.value);
-              }}
-            >
-              <option value="">Select a saved run</option>
-              {history.map((r) => (
-                <option key={r.id} value={r.id}>
-                  {r.title} - {r.createdAt}
-                </option>
-              ))}
-            </select>
-          </div>
           {loading && (
             <button onClick={() => pending.current?.abort()}>
               Cancel request
@@ -378,6 +329,57 @@ export default function SimulationLab({
               <span>Adaptation</span>
             </div>
           </div>
+          <details className="run-library">
+            <summary>Saved runs</summary>
+            <div className="save-status" role="status">
+              {hasRun
+                ? result.saveStatus === "saved"
+                  ? `Saved ${result.createdAt || ""}`
+                  : "Unsaved. Save required for replay and branching."
+                : "No saved simulation selected."}
+              {result.scenario.parentSimulationId && (
+                <button
+                  disabled={loading}
+                  onClick={() => load(result.scenario.parentSimulationId!)}
+                >
+                  Replay parent {result.scenario.parentSimulationId} (week{" "}
+                  {result.scenario.branchWeek})
+                </button>
+              )}
+            </div>
+            <div className="history">
+              <button
+                disabled={loading}
+                onClick={() =>
+                  execute(async () => {
+                    const r = await fetch("/api/simulations", {
+                      signal: pending.current?.signal,
+                    });
+                    if (!r.ok) throw new Error((await r.json()).error);
+                    setHistory(await r.json());
+                  })
+                }
+              >
+                Refresh saved history
+              </button>
+              <label htmlFor="saved-run">Saved runs</label>
+              <select
+                id="saved-run"
+                value=""
+                disabled={loading}
+                onChange={(e) => {
+                  if (e.target.value) load(e.target.value);
+                }}
+              >
+                <option value="">Select a saved run</option>
+                {history.map((r) => (
+                  <option key={r.id} value={r.id}>
+                    {r.title} - {r.createdAt}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </details>
         </section>
         <aside className="panel analysis">
           <div className="country-search">
@@ -450,8 +452,7 @@ export default function SimulationLab({
               <Activity />
               <h3>Start a simulation</h3>
               <p>
-                Describe a world event, set its severity and horizon, then run
-                it to create the weekly timeline.
+                Run a scenario to explore its impact.
               </p>
             </div>
           )}

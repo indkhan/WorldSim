@@ -78,12 +78,10 @@ export default function ProviderGate({
       <div className="gate-icon">
         <KeyRound />
       </div>
-      <p className="eyebrow">PRIVATE SESSION</p>
       <h1 id="provider-title">Connect OpenRouter</h1>
       <p>
-        Your key stays in this tab, travels only to WorldSim&apos;s server, and
-        is forgotten when you refresh. It powers both simulation decisions and
-        narration.
+        Add a key for AI decisions, or continue without one.
+        Your key is sent to WorldSim&apos;s server and kept only for this tab.
       </p>
       <label htmlFor="openrouter-key">OpenRouter API key</label>
       <input

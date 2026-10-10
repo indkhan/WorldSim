@@ -1,4 +1,22 @@
 import { expect, test } from "@playwright/test";
+test("keeps optional controls tucked away and fits narrow screens", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  await page.goto("/");
+  await page.getByRole("button", { name: "Use deterministic mode" }).click();
+  await expect(page.getByLabel("Shock decay scale (weeks)")).toBeHidden();
+  await page.getByText("Advanced settings", { exact: true }).click();
+  await expect(page.getByLabel("Shock decay scale (weeks)")).toBeVisible();
+  await expect(page.getByLabel("Saved runs")).toBeHidden();
+  await page.locator(".run-library > summary").click();
+  await expect(page.getByLabel("Saved runs")).toBeVisible();
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= window.innerWidth,
+    ),
+  ).toBe(true);
+});
 test("runs a blank scenario without API keys", async ({ page }) => {
   await page.goto("/");
   await expect(
@@ -188,6 +206,7 @@ test("loads saved history, metadata and parent ancestry", async ({
   );
   await page.goto("/");
   await page.getByRole("button", { name: "Use deterministic mode" }).click();
+  await page.locator(".run-library > summary").click();
   await page.getByRole("button", { name: "Refresh saved history" }).click();
   await expect(page.getByLabel("Saved runs")).toContainText("Saved example");
   await page.getByLabel("Saved runs").selectOption("child");
@@ -247,6 +266,7 @@ test("clears a previous baseline when branching a saved run", async ({
   );
   await page.goto("/");
   await page.getByRole("button", { name: "Use deterministic mode" }).click();
+  await page.locator(".run-library > summary").click();
   await page.getByRole("button", { name: "Refresh saved history" }).click();
   await expect(page.getByLabel("Saved runs")).toContainText("Saved run");
   await page.getByLabel("Saved runs").selectOption("parent");

@@ -46,8 +46,7 @@ export function WorldSummary({
         </button>
       ))}
       <div className="warning">
-        Model confidence and simulation frequency are not verified real-world
-        probabilities.
+        Model scores are not real-world probabilities.
       </div>
     </div>
   );
@@ -65,9 +64,7 @@ export function ComparisonPanel({
         <GitBranch />
         <h3>Create a baseline</h3>
         <p>
-          Run the same world without the introduced shock to compare model
-          outputs. Provider decisions can vary independently; the delta is not
-          causal attribution.
+          Compare this scenario with a world without the shock. Differences do not imply causation.
         </p>
       </div>
     );

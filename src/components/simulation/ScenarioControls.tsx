@@ -45,12 +45,6 @@ export function ScenarioControls(p: Props) {
         onChange={(e) => p.onDescription(e.target.value)}
         placeholder="Describe the event that changes the world…"
       />
-      <p className="field-help">
-        Description and assumptions are descriptive text; rules do not interpret
-        them numerically. Family, severity, seed, regions, shock duration and
-        adaptation timing drive numbers. Provider decisions can also change
-        numbers.
-      </p>
       <label>Event family</label>
       <div className="family-grid">
         {families.map((x) => (
@@ -88,24 +82,30 @@ export function ScenarioControls(p: Props) {
         value={p.duration}
         onChange={(e) => p.onDuration(+e.target.value)}
       />
-      <label htmlFor="shock-duration">Shock decay scale (weeks)</label>
-      <input
-        id="shock-duration"
-        type="number"
-        min="1"
-        max="104"
-        value={p.shockDuration}
-        onChange={(e) => p.onShockDuration(+e.target.value)}
-      />
-      <label htmlFor="adaptation">Adaptation timescale (weeks)</label>
-      <input
-        id="adaptation"
-        type="number"
-        min="1"
-        max="104"
-        value={p.adaptation}
-        onChange={(e) => p.onAdaptation(+e.target.value)}
-      />
+      <details className="advanced">
+        <summary>Advanced settings</summary>
+        <label htmlFor="shock-duration">Shock decay scale (weeks)</label>
+        <input
+          id="shock-duration"
+          type="number"
+          min="1"
+          max="104"
+          value={p.shockDuration}
+          onChange={(e) => p.onShockDuration(+e.target.value)}
+        />
+        <label htmlFor="adaptation">Adaptation timescale (weeks)</label>
+        <input
+          id="adaptation"
+          type="number"
+          min="1"
+          max="104"
+          value={p.adaptation}
+          onChange={(e) => p.onAdaptation(+e.target.value)}
+        />
+        <p className="field-help">
+          In rules mode, settings drive results; event text is descriptive.
+        </p>
+      </details>
       <button
         className="primary"
         disabled={p.loading || p.description.trim().length < 10}
@@ -132,13 +132,8 @@ export function ScenarioControls(p: Props) {
         <GitBranch size={15} />
         Branch from week {p.week}
       </button>
-      <p className="field-help">
-        Branches continue with deterministic rules; historical provider
-        decisions stay intact.
-      </p>
       <p className="fineprint">
-        Every country contains weighted demographic and sector cohorts. Results
-        are exploratory scenario outputs, not forecasts.
+        Exploratory results, not forecasts.
       </p>
     </aside>
   );

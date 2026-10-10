@@ -40,7 +40,7 @@ function headers(key: string) {
     "X-Title": "WorldSim",
   };
 }
-// Only the authenticated route may select the server key; helpers never select it implicitly.
+// Provider calls use only the key supplied by the visitor.
 export async function decideWithOpenRouter(
   input: {
     actor: ActorKind;

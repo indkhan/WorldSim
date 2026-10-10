@@ -1,6 +1,5 @@
 import { privateAccess } from "@/lib/access";
 import { NextResponse } from "next/server";
-import { authenticated } from "@/lib/access";
 import { createProviderBudget } from "@/lib/providers/execution";
 import { scenarioSchema } from "@/lib/simulation/schema";
 import { runProviderSimulation } from "@/lib/simulation/provider-runner";
@@ -25,8 +24,7 @@ export async function POST(req: Request) {
     const key =
       req.headers.get("x-provider-mode") === "deterministic"
         ? null
-        : req.headers.get("x-openrouter-api-key") ||
-          (authenticated(req) ? process.env.OPENROUTER_API_KEY : null);
+        : req.headers.get("x-openrouter-api-key");
     const budget = key ? createProviderBudget(req.signal) : undefined;
     const result = await runProviderSimulation(input, key, budget);
     if (

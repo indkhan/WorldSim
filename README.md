@@ -34,16 +34,13 @@ npm run db:push
 npm run dev
 ```
 
-Open `http://localhost:3000`. The core simulator works without a database or AI key. Persistence/branching require PostgreSQL. Provider features use a supplied OpenRouter key. A server key can only be selected by an authenticated private owner. Production requires WORLDSIM_PASSWORD (at least 16 characters) and HTTP Basic authentication; local development works without it. Use HTTPS in production.
+Open `http://localhost:3000`. The core simulator works without a database or AI key. Persistence/branching require PostgreSQL. Visitors supply their own OpenRouter key in the app for provider features, or continue in deterministic mode. No deployment password or server provider key is needed. Saved simulations are shared with all visitors. Use HTTPS in production.
 
 ## Environment variables
 
 | Variable | Required | Purpose |
 | --- | --- | --- |
 | `DATABASE_URL` | for persistence | PostgreSQL connection used by Prisma |
-| `OPENROUTER_API_KEY` | no | Server key, accessible only to the authenticated private owner |
-| `WORLDSIM_PASSWORD` | in production | Unique private deployment password, at least 16 characters |
-| `WORLDSIM_USERNAME` | no | HTTP Basic username (default `worldsim`) |
 | `PROVIDER_MAX_CALLS` | no | Total requests per run, including narration; default 24, maximum 60 |
 | `PROVIDER_MAX_SECONDS` | no | Total provider time budget; default 60, maximum 120 seconds |
 | `DECISION_MAX_COUNTRIES` | no | Countries evaluated per week (1-12, default 6) |

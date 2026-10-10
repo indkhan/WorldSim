@@ -25,9 +25,9 @@ For personal use, a bounded long-running Vercel Function is simple. For public/h
 
 `db:push` is convenient for a pet project. Once multiple environments/users depend on the database, create and commit Prisma migrations and apply them in a controlled release step.
 
-## Private access and optional persistence
+## Visitor keys and optional persistence
 
-Set a unique WORLDSIM_PASSWORD of at least 16 characters before starting production; WORLDSIM_USERNAME defaults to worldsim. The browser uses native HTTP Basic authentication. Protect the entire deployment with HTTPS and never put credentials in URLs/logs. This is one owner, not a multiuser release. Do not share the owner credential to simulate separate users. Public multiuser use needs ownership columns/queries, identity and distributed quotas/rate limits first.
+No deployment password or server provider key is needed. Visitors supply their own OpenRouter key in the app or continue in deterministic mode. Saved simulations are shared with all visitors. Use HTTPS and never put credentials in URLs/logs. Separate private user histories require ownership columns/queries and identity; public scaling requires distributed quotas/rate limits.
 
 DATABASE_URL defaults to blank. Set it only for real PostgreSQL, then run npm run db:push. A save outage retains usable results marked unsaved; history/replay outages return 503. No schema migration is required for the compact JSON storage contract. Existing rows are read without rewriting history.
 

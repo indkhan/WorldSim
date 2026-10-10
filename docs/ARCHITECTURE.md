@@ -52,7 +52,7 @@ This avoids depending on in-memory process lifetime and allows retries without r
 
 ## Security
 
-Server environment keys remain server-side. User-supplied keys live in tab React state and travel to server routes over HTTPS; they are never persisted or logged. Zod validates simulation input and provider choices/confidence. Provider calls have timeouts and budgets. Vercel headers disable unnecessary browser capabilities and add basic hardening. Production is a private single-owner deployment protected by HTTP Basic authentication on pages and every API route. Missing/short WORLDSIM_PASSWORD fails closed. The same owner controls all saved runs; anonymous requests cannot spend an environment key even in development. Cross-origin mutations are rejected. Public multiuser operation is unsupported: replace private access with real identity, per-owner database queries and distributed quotas/rate limits before enabling it.
+Visitors supply their own OpenRouter keys; there is no server-key fallback or deployment password. Keys live in tab React state and travel to server routes over HTTPS; they are never persisted or logged. Zod validates simulation input and provider choices/confidence. Provider calls have timeouts and budgets. Vercel headers disable unnecessary browser capabilities and add basic hardening. All visitors share saved runs when persistence is configured. Cross-origin mutations are rejected. Separate private user histories and public scaling require real identity, per-owner database queries and distributed quotas/rate limits.
 
 ## Compact timeline contract
 
